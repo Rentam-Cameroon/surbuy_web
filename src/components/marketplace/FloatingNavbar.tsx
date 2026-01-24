@@ -25,21 +25,15 @@ export default function FloatingNavbar() {
                             key={item.label}
                             onClick={() => router.push(item.path)}
                             className={cn(
-                                "relative flex flex-col items-center justify-center w-14 h-14 rounded-full transition-all duration-300 group",
+                                "relative flex flex-col items-center justify-center w-16 h-14 rounded-2xl transition-all duration-300 group",
                                 isActive
                                     ? "text-primary"
                                     : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                             )}
                         >
-                            <div className={cn(
-                                "absolute -top-1 w-1 h-1 rounded-full bg-primary transition-all duration-300 opacity-0",
-                                isActive && "opacity-100 top-1"
-                            )} />
-                            <item.icon className={cn("h-6 w-6 transition-transform duration-300 group-hover:scale-110", isActive && "scale-110")} />
-                            {/* Optional Label - hidden for cleaner floating look, or show on hover? 
-                                Keeping it icon-only for the "modern floating" aesthetic usually implies clean. 
-                            */}
-                            {/* <span className="text-[10px] font-medium mt-1">{item.label}</span> */}
+
+                            <item.icon className={cn("h-5 w-5 mb-0.5 transition-transform duration-300 group-hover:scale-110", isActive && "scale-110")} />
+                            <span className="text-[10px] font-medium leading-none">{item.label}</span>
                         </button>
                     )
                 })}

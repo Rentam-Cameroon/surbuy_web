@@ -16,16 +16,29 @@ const categories = [
     { id: 'furniture', name: 'Furniture', icon: Sofa },
 ]
 
+import { useRouter } from "next/navigation"
+
 export default function CategoryBar() {
+    const router = useRouter()
+
+    const handleCategoryClick = (cat: typeof categories[0]) => {
+        if (cat.id === 'all') {
+            router.push('/dashboard')
+        } else {
+            router.push(`/view-all?title=${encodeURIComponent(cat.name)}&category=${cat.id}`)
+        }
+    }
+
     return (
-        <div className="w-full overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
-            <div className="flex w-max space-x-2">
+        <div className="w-full overflow-x-auto pb-4 scrollbar-hide">
+            <div className="flex w-max px-4 space-x-2">
                 {categories.map((cat) => (
                     <Button
                         key={cat.id}
                         variant={cat.id === 'all' ? "default" : "outline"}
                         className="rounded-full px-6 gap-2"
                         size="sm"
+                        onClick={() => handleCategoryClick(cat)}
                     >
                         {cat.icon && <cat.icon className="h-4 w-4" />}
                         {cat.name}

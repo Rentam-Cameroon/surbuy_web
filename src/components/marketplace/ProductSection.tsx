@@ -3,20 +3,26 @@
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 import ListingCard from "./ListingCard"
+import Link from "next/link"
 
 interface ProductSectionProps {
     title: string
     listings: any[]
+    href?: string
 }
 
-export default function ProductSection({ title, listings }: ProductSectionProps) {
+export default function ProductSection({ title, listings, href }: ProductSectionProps) {
     return (
         <section className="space-y-4">
             <div className="flex justify-between items-end px-1">
                 <h2 className="text-xl font-bold tracking-tight">{title}</h2>
-                <Button variant="ghost" className="text-primary hover:text-primary/80 hover:bg-primary/5 gap-1 h-auto py-1 px-2 text-sm font-semibold">
-                    View all <ArrowRight className="h-3 w-3" />
-                </Button>
+                {href && (
+                    <Button variant="ghost" className="text-primary hover:text-primary/80 hover:bg-primary/5 gap-1 h-auto py-1 px-2 text-sm font-semibold" asChild>
+                        <Link href={href}>
+                            View all <ArrowRight className="h-3 w-3" />
+                        </Link>
+                    </Button>
+                )}
             </div>
 
             {/* 
@@ -27,6 +33,7 @@ export default function ProductSection({ title, listings }: ProductSectionProps)
                 {listings.map((item) => (
                     <div key={item.id} className="min-w-[260px] md:min-w-0">
                         <ListingCard
+                            id={item.id}
                             title={item.title}
                             price={item.price}
                             location={item.location}
