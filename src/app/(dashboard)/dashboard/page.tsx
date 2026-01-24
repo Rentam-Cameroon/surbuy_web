@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
 import CategoryBar from "@/components/marketplace/CategoryBar"
 import ListingCard from "@/components/marketplace/ListingCard"
+import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
+import ProductSection from "@/components/marketplace/ProductSection"
 
 // Mock Data
 const MOCK_LISTINGS = [
@@ -61,17 +63,23 @@ const MOCK_LISTINGS = [
 
 export default function Dashboard() {
     return (
-        <div className="min-h-screen bg-background pb-20 md:pb-8">
-            {/* Header / Search Section */}
+        <div className="min-h-screen bg-background pb-28 md:pb-8">
+            {/* Header Section */}
             <div className="sticky top-0 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-                <div className="container mx-auto px-4 py-4 space-y-4">
-                    <div className="flex items-center gap-4">
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Search for anything..."
-                                className="pl-9 bg-muted/50 border-none focus-visible:ring-1"
-                            />
+                <div className="container mx-auto px-4 py-3 space-y-4">
+                    <div className="flex items-center justify-center md:justify-start h-10 relative">
+                        {/* Logo */}
+                        <div className="flex items-center gap-2">
+                            {/* Placeholder for Logo Icon */}
+                            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                                S
+                            </div>
+                            <span className="text-xl font-bold tracking-widest text-primary hidden md:block">
+                                SURBUY
+                            </span>
+                            <span className="text-xl font-bold tracking-widest text-primary md:hidden">
+                                SURBUY
+                            </span>
                         </div>
                     </div>
 
@@ -81,31 +89,14 @@ export default function Dashboard() {
             </div>
 
             {/* Main Content */}
-            <main className="container mx-auto px-4 py-6 space-y-8">
-                {/* Featured / Recent */}
-                <section className="space-y-4">
-                    <div className="flex justify-between items-end">
-                        <h2 className="text-xl font-bold tracking-tight">Fresh Recommendations</h2>
-                        <a href="#" className="text-sm font-medium text-primary hover:underline">
-                            View all
-                        </a>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {MOCK_LISTINGS.map((item) => (
-                            <ListingCard
-                                key={item.id}
-                                title={item.title}
-                                price={item.price}
-                                location={item.location}
-                                image={item.image}
-                                category={item.category}
-                                isNew={item.isNew}
-                            />
-                        ))}
-                    </div>
-                </section>
+            <main className="container mx-auto px-4 py-6 space-y-10">
+                <ProductSection title="Newly Added" listings={MOCK_LISTINGS.slice(0, 4)} />
+                <ProductSection title="Popular" listings={MOCK_LISTINGS.slice(2, 6)} />
+                <ProductSection title="Recommended for you" listings={MOCK_LISTINGS.slice(1, 5)} />
             </main>
+
+            {/* Floating Navbar */}
+            <FloatingNavbar />
         </div>
     )
 }
