@@ -67,3 +67,66 @@ export const MOCK_LISTINGS = [
         category: "Furniture"
     }
 ]
+
+export const MOCK_REQUESTS = [
+    {
+        id: "req1",
+        title: "Looking for a used iPhone 12 Pro",
+        budgetMax: 250000,
+        location: "Buea, Molyko",
+        description: "Need a clean UK used iPhone 12 Pro. Battery health should be above 85%.",
+        user: {
+            name: "Sarah Kang",
+            avatar: "https://i.pravatar.cc/150?u=sarah",
+            isVerified: true
+        },
+        category: "Electronics",
+        postedAt: "2h ago",
+        urgency: "High"
+    },
+    {
+        id: "req2",
+        title: "Apartment needed in Bonapriso",
+        budgetMax: 150000,
+        location: "Bonapriso, Douala",
+        description: "Looking for a studio or 1 bedroom apartment. Modern finishings preferred.",
+        user: {
+            name: "Jean Paul",
+            avatar: "https://i.pravatar.cc/150?u=jean",
+            isVerified: false
+        },
+        category: "Real Estate",
+        postedAt: "5h ago",
+        urgency: "Normal"
+    },
+    {
+        id: "req3",
+        title: "Gaming Laptop (RTX 3060)",
+        budgetMax: 600000,
+        location: "Yaoundé",
+        description: "I need a gaming laptop with at least RTX 3060 graphics card. HP Omen or Lenovo Legion.",
+        user: {
+            name: "Tech Bro",
+            avatar: "https://i.pravatar.cc/150?u=tech",
+            isVerified: true
+        },
+        category: "Electronics",
+        postedAt: "1d ago",
+        urgency: "High"
+    },
+    {
+        id: "req4",
+        title: "Wedding Dress Rental",
+        budgetMax: 50000,
+        location: "Bamenda",
+        description: "Looking for a white wedding dress for rent for a weekend. Size 10-12.",
+        user: {
+            name: "Marie Claire",
+            avatar: "https://i.pravatar.cc/150?u=marie",
+            isVerified: true
+        },
+        category: "Fashion",
+        postedAt: "2d ago",
+        urgency: "High"
+    }
+]
