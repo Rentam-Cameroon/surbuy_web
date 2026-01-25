@@ -78,12 +78,12 @@ export default function RequestCard({ request }: RequestCardProps) {
                 </div>
             </CardContent>
 
-            <CardFooter className="p-4 bg-muted/20 flex gap-2 w-full">
-                <Button className="w-full h-9 text-xs font-semibold shadow-sm hover:shadow-md transition-all" size="sm">
-                    Make Offer
+            <CardFooter className="p-4 bg-muted/10 flex gap-2 w-full">
+                <Button className="w-[65%] h-10 text-xs font-bold shadow-sm hover:shadow-md transition-all rounded-xl" size="sm">
+                    I have it
                 </Button>
-                <Button variant="outline" size="icon" className="h-9 w-9 shrink-0">
-                    <MessageCircle className="w-4 h-4" />
+                <Button variant="outline" size="sm" className="w-[35%] h-10 text-[10px] font-medium rounded-xl leading-tight px-1 text-center">
+                    I know someone
                 </Button>
             </CardFooter>
         </Card>

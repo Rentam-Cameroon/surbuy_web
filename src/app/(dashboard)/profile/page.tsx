@@ -1,0 +1,194 @@
+"use client"
+
+import { useState } from "react"
+import {
+    User,
+    Mail,
+    Phone,
+    ShieldCheck,
+    ChevronRight,
+    Bell,
+    Shield,
+    LogOut,
+    Camera,
+    Pencil,
+    CircleCheck,
+    AlertCircle
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Switch } from "@/components/ui/switch"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
+import Link from "next/link"
+
+export default function ProfilePage() {
+    const [notifications, setNotifications] = useState({
+        push: true,
+        email: false,
+        offers: true,
+    })
+
+    const user = {
+        name: "Zadolf Ngouajio",
+        email: "zadolf@example.com",
+        phone: "+237 670 000 000",
+        avatar: "",
+        isEmailVerified: true,
+        isPhoneVerified: false,
+        memberSince: "Jan 2024",
+    }
+
+    return (
+        <div className="pb-32 pt-6 min-h-screen bg-background">
+            <div className="max-w-2xl mx-auto px-4 space-y-8">
+                {/* Header Section */}
+                <div className="flex flex-col items-center text-center space-y-4">
+                    <div className="relative">
+                        <Avatar className="h-28 w-28 border-4 border-background shadow-xl ring-1 ring-border/50">
+                            <AvatarImage src={user.avatar} />
+                            <AvatarFallback className="bg-primary/5 text-primary text-3xl font-bold">
+                                {user.name.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                        </Avatar>
+                        <button className="absolute bottom-1 right-1 p-2 bg-primary text-white rounded-full shadow-lg hover:scale-110 active:scale-95 transition-transform">
+                            <Camera className="w-4 h-4" />
+                        </button>
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight">{user.name}</h1>
+                        <p className="text-muted-foreground text-sm">Member since {user.memberSince}</p>
+                    </div>
+                    <Link href="/profile/edit">
+                        <Button variant="outline" size="sm" className="rounded-full px-6 gap-2 h-9 border-primary/20 hover:bg-primary/5 text-primary font-semibold">
+                            <Pencil className="w-3.5 h-3.5" />
+                            Edit Profile
+                        </Button>
+                    </Link>
+                </div>
+
+                {/* Verification Status */}
+                <Card className="border-border/40 overflow-hidden shadow-sm">
+                    <CardHeader className="bg-muted/30 pb-4">
+                        <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                            <ShieldCheck className="w-4 h-4 text-primary" />
+                            Verification Status
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <div className="divide-y divide-border/40">
+                            <div className="flex items-center justify-between p-4 px-6 hover:bg-muted/10 transition-colors">
+                                <div className="flex items-center gap-4">
+                                    <div className={user.isEmailVerified ? "text-green-600 bg-green-500/10 p-2 rounded-full" : "text-amber-600 bg-amber-500/10 p-2 rounded-full"}>
+                                        <Mail className="w-4 h-4" />
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <p className="text-sm font-bold">Email Address</p>
+                                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                                    </div>
+                                </div>
+                                {user.isEmailVerified ? (
+                                    <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-none pointer-events-none gap-1">
+                                        <CircleCheck className="w-3 h-3" />
+                                        Verified
+                                    </Badge>
+                                ) : (
+                                    <Button variant="outline" size="sm" className="h-7 text-[10px] rounded-full">Verify Now</Button>
+                                )}
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 px-6 hover:bg-muted/10 transition-colors">
+                                <div className="flex items-center gap-4">
+                                    <div className={user.isPhoneVerified ? "text-green-600 bg-green-500/10 p-2 rounded-full" : "text-amber-600 bg-amber-500/10 p-2 rounded-full"}>
+                                        <Phone className="w-4 h-4" />
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <p className="text-sm font-bold">Phone Number</p>
+                                        <p className="text-xs text-muted-foreground">{user.phone}</p>
+                                    </div>
+                                </div>
+                                {user.isPhoneVerified ? (
+                                    <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-none pointer-events-none gap-1">
+                                        <CircleCheck className="w-3 h-3" />
+                                        Verified
+                                    </Badge>
+                                ) : (
+                                    <Link href="/profile/verify-phone">
+                                        <Button variant="outline" size="sm" className="h-7 text-[10px] rounded-full text-amber-600 border-amber-200 bg-amber-50 group hover:bg-amber-100">
+                                            <AlertCircle className="w-3 h-3 mr-1" />
+                                            Verify Now
+                                        </Button>
+                                    </Link>
+                                )}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Account Settings */}
+                <div className="space-y-4">
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-2">Account Settings</h2>
+                    <Card className="border-border/40 overflow-hidden shadow-sm">
+                        <CardContent className="p-0">
+                            <div className="divide-y divide-border/40">
+                                {/* Notifications Toggle List */}
+                                <div className="p-6 space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <div className="space-y-0.5">
+                                            <div className="flex items-center gap-2">
+                                                <Bell className="w-4 h-4 text-muted-foreground" />
+                                                <p className="text-sm font-bold">Push Notifications</p>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">Receive alerts on your device</p>
+                                        </div>
+                                        <Switch
+                                            checked={notifications.push}
+                                            onCheckedChange={(v) => setNotifications({ ...notifications, push: v })}
+                                        />
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="space-y-0.5">
+                                            <div className="flex items-center gap-2">
+                                                <Mail className="w-4 h-4 text-muted-foreground" />
+                                                <p className="text-sm font-bold">Email Notifications</p>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">Receive weekly updates & offers</p>
+                                        </div>
+                                        <Switch
+                                            checked={notifications.email}
+                                            onCheckedChange={(v) => setNotifications({ ...notifications, email: v })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <Link href="/profile/security" className="flex items-center justify-between p-6 hover:bg-muted/10 transition-colors group">
+                                    <div className="flex items-center gap-4">
+                                        <Shield className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                        <div className="space-y-0.5">
+                                            <p className="text-sm font-bold">Security</p>
+                                            <p className="text-xs text-muted-foreground">Password & account safety</p>
+                                        </div>
+                                    </div>
+                                    <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                                </Link>
+
+                                <button className="w-full flex items-center justify-between p-6 hover:bg-red-50 transition-colors group">
+                                    <div className="flex items-center gap-4">
+                                        <LogOut className="w-4 h-4 text-muted-foreground group-hover:text-red-500 transition-colors" />
+                                        <div className="space-y-0.5 text-left">
+                                            <p className="text-sm font-bold group-hover:text-red-600 transition-colors">Logout</p>
+                                            <p className="text-xs text-muted-foreground">Sign out of your account</p>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+
+            <FloatingNavbar />
+        </div>
+    )
+}
