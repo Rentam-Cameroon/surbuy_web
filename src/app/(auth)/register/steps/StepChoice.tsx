@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button"
 import { useRegistrationStore } from "@/store/useRegistrationStore"
 import { motion } from "framer-motion"
-import { ShoppingBag, Store } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { ArrowLeft, ShoppingBag, Store } from "lucide-react"
 
 export default function StepChoice() {
-    const { fullName } = useRegistrationStore()
+    const { fullName, setStep } = useRegistrationStore()
     const router = useRouter()
 
     const handleChoice = (type: 'buy' | 'sell') => {
@@ -23,6 +23,17 @@ export default function StepChoice() {
             animate={{ opacity: 1, scale: 1 }}
             className="space-y-8 text-center"
         >
+            <div className="flex justify-start mb-4">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setStep(5)}
+                    className="p-0 h-auto font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                </Button>
+            </div>
             <div className="space-y-4">
                 <h1 className="text-3xl font-bold tracking-tight">You're all set, {fullName.split(' ')[0]}!</h1>
                 <p className="text-muted-foreground text-lg">

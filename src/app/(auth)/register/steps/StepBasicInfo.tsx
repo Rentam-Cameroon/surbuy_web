@@ -3,12 +3,14 @@ import { Input } from "@/components/ui/input"
 import { useRegistrationStore } from "@/store/useRegistrationStore"
 import { motion } from "framer-motion"
 
+import { ArrowLeft } from "lucide-react"
+
 export default function StepBasicInfo() {
     const { fullName, city, neighborhood, setFullName, setCity, setNeighborhood, setStep } = useRegistrationStore()
 
     const handleNext = () => {
         // Validation removed as requested
-        setStep(2)
+        setStep(3)
     }
 
     return (
@@ -19,9 +21,20 @@ export default function StepBasicInfo() {
             className="space-y-6"
         >
             <div className="space-y-2 text-center">
-                <h1 className="text-2xl font-bold tracking-tight">Let's start</h1>
-                <p className="text-muted-foreground">
-                    Tell us a bit about yourself.
+                <div className="flex justify-start mb-4">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setStep(1)}
+                        className="p-0 h-auto font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back
+                    </Button>
+                </div>
+                <h1 className="text-2xl font-bold tracking-tight">Basic Information</h1>
+                <p className="text-muted-foreground text-sm">
+                    You are almost done. Completing your profile helps protect your trades.
                 </p>
             </div>
             <div className="space-y-4">

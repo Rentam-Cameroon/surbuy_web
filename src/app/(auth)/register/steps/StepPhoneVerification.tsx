@@ -4,6 +4,8 @@ import { useRegistrationStore } from "@/store/useRegistrationStore"
 import { motion, AnimatePresence } from "framer-motion"
 import { useState, useEffect } from "react"
 
+import { ArrowLeft } from "lucide-react"
+
 export default function StepPhoneVerification() {
     const { phone, phoneOtp, setPhone, setPhoneOtp, setStep } = useRegistrationStore()
     const [codeSent, setCodeSent] = useState(false)
@@ -26,7 +28,7 @@ export default function StepPhoneVerification() {
 
     const handleVerify = () => {
         // Validation removed as requested
-        setStep(3)
+        setStep(2)
     }
 
     return (
@@ -38,8 +40,10 @@ export default function StepPhoneVerification() {
         >
             <div className="space-y-2 text-center">
                 <h1 className="text-2xl font-bold tracking-tight">Secure Account</h1>
-                <p className="text-muted-foreground">
-                    {codeSent ? "Enter the code sent to your phone." : "Verify your phone number."}
+                <p className="text-muted-foreground text-sm">
+                    {codeSent
+                        ? "Enter the code sent to your phone."
+                        : "Add your phone so we can secure your account with a one-time code."}
                 </p>
             </div>
 

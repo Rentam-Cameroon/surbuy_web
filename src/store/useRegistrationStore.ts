@@ -11,6 +11,7 @@ interface RegistrationState {
     email: string
     emailOtp: string
     bio: string
+    password: string
     profileImage: File | null
 
     setStep: (step: number) => void
@@ -23,6 +24,7 @@ interface RegistrationState {
     setEmail: (email: string) => void
     setEmailOtp: (otp: string) => void
     setBio: (bio: string) => void
+    setPassword: (password: string) => void
     setProfileImage: (file: File | null) => void
     reset: () => void
 }
@@ -38,6 +40,7 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
     email: '',
     emailOtp: '',
     bio: '',
+    password: '',
     profileImage: null,
 
     setStep: (step) => set({ step }),
@@ -50,6 +53,7 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
     setEmail: (email) => set({ email }),
     setEmailOtp: (emailOtp) => set({ emailOtp }),
     setBio: (bio) => set({ bio }),
+    setPassword: (password) => set({ password }),
     setProfileImage: (profileImage) => set({ profileImage }),
 
     reset: () => set({
@@ -63,6 +67,8 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
         email: '',
         emailOtp: '',
         bio: '',
+        password: '',
         profileImage: null
     })
-}))
+})
+)

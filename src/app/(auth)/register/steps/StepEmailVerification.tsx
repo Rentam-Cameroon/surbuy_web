@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input"
 import { useRegistrationStore } from "@/store/useRegistrationStore"
 import { motion } from "framer-motion"
 import { useState, useEffect } from "react"
-import { Mail } from "lucide-react"
+import { ArrowLeft, Mail } from "lucide-react"
 
 export default function StepEmailVerification() {
     const { email, emailOtp, setEmail, setEmailOtp, setStep } = useRegistrationStore()
@@ -38,9 +38,22 @@ export default function StepEmailVerification() {
             className="space-y-6"
         >
             <div className="space-y-2 text-center">
+                <div className="flex justify-start mb-4">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setStep(3)}
+                        className="p-0 h-auto font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back
+                    </Button>
+                </div>
                 <h1 className="text-2xl font-bold tracking-tight">Email Verification</h1>
-                <p className="text-muted-foreground">
-                    {codeSent ? "Check your inbox for the code." : "Add a recovery email."}
+                <p className="text-muted-foreground text-sm">
+                    {codeSent
+                        ? "Check your inbox for the code."
+                        : "Verify your email to receive important account updates and recover your account."}
                 </p>
             </div>
 

@@ -1,11 +1,9 @@
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { useRegistrationStore } from "@/store/useRegistrationStore"
 import { motion } from "framer-motion"
-import { Camera, User } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
-
+import { ArrowLeft, Camera, User } from "lucide-react"
 export default function StepProfile() {
     const { bio, setBio, setProfileImage, profileImage, setStep } = useRegistrationStore()
     const [preview, setPreview] = useState<string | null>(profileImage ? URL.createObjectURL(profileImage) : null)
@@ -30,9 +28,20 @@ export default function StepProfile() {
             className="space-y-6"
         >
             <div className="space-y-2 text-center">
+                <div className="flex justify-start mb-4">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setStep(2)}
+                        className="p-0 h-auto font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back
+                    </Button>
+                </div>
                 <h1 className="text-2xl font-bold tracking-tight">Add a photo</h1>
-                <p className="text-muted-foreground">
-                    Help others recognize you.
+                <p className="text-muted-foreground text-sm">
+                    Optional, but it helps buyers and sellers trust you faster.
                 </p>
             </div>
 

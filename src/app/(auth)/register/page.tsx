@@ -3,10 +3,11 @@
 import { useRegistrationStore } from "@/store/useRegistrationStore"
 import { AnimatePresence } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
-import StepBasicInfo from "./steps/StepBasicInfo"
 import StepPhoneVerification from "./steps/StepPhoneVerification"
+import StepBasicInfo from "./steps/StepBasicInfo"
 import StepProfile from "./steps/StepProfile"
 import StepEmailVerification from "./steps/StepEmailVerification"
+import StepPassword from "./steps/StepPassword"
 import StepChoice from "./steps/StepChoice"
 
 export default function RegisterPage() {
@@ -23,19 +24,20 @@ export default function RegisterPage() {
                 <Card className="border-none shadow-none bg-background">
                     <CardContent className="p-8">
                         <AnimatePresence mode="wait">
-                            {step === 1 && <StepBasicInfo key="step1" />}
-                            {step === 2 && <StepPhoneVerification key="step2" />}
+                            {step === 1 && <StepPhoneVerification key="step1" />}
+                            {step === 2 && <StepBasicInfo key="step2" />}
                             {step === 3 && <StepProfile key="step3" />}
                             {step === 4 && <StepEmailVerification key="step4" />}
-                            {step === 5 && <StepChoice key="step5" />}
+                            {step === 5 && <StepPassword key="step5" />}
+                            {step === 6 && <StepChoice key="step6" />}
                         </AnimatePresence>
                     </CardContent>
                 </Card>
 
                 {/* Use dots for step progress */}
-                {step < 5 && (
+                {step < 6 && (
                     <div className="flex justify-center gap-2 mt-4">
-                        {[1, 2, 3, 4].map((i) => (
+                        {[1, 2, 3, 4, 5].map((i) => (
                             <div
                                 key={i}
                                 className={`h-2 rounded-full transition-all ${step >= i ? "w-4 bg-primary" : "w-2 bg-muted-foreground/30"}`}
