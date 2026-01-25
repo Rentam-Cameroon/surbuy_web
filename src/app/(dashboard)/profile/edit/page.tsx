@@ -87,7 +87,6 @@ export default function EditProfilePage() {
                     </div>
 
                     <Button type="submit" className="w-full h-14 text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all gap-2">
-                        <Save className="w-5 h-5" />
                         Save Changes
                     </Button>
                 </form>

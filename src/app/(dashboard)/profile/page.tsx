@@ -18,18 +18,11 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import Link from "next/link"
 
 export default function ProfilePage() {
-    const [notifications, setNotifications] = useState({
-        push: true,
-        email: false,
-        offers: true,
-    })
-
     const user = {
         name: "Zadolf Ngouajio",
         email: "zadolf@example.com",
@@ -132,35 +125,16 @@ export default function ProfilePage() {
                     <Card className="border-border/40 overflow-hidden shadow-sm">
                         <CardContent className="p-0">
                             <div className="divide-y divide-border/40">
-                                {/* Notifications Toggle List */}
-                                <div className="p-6 space-y-6">
-                                    <div className="flex items-center justify-between">
+                                <Link href="/profile/notifications" className="flex items-center justify-between p-6 hover:bg-muted/10 transition-colors group">
+                                    <div className="flex items-center gap-4">
+                                        <Bell className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                                         <div className="space-y-0.5">
-                                            <div className="flex items-center gap-2">
-                                                <Bell className="w-4 h-4 text-muted-foreground" />
-                                                <p className="text-sm font-bold">Push Notifications</p>
-                                            </div>
-                                            <p className="text-xs text-muted-foreground">Receive alerts on your device</p>
+                                            <p className="text-sm font-bold">Notifications</p>
+                                            <p className="text-xs text-muted-foreground">Manage your alert preferences</p>
                                         </div>
-                                        <Switch
-                                            checked={notifications.push}
-                                            onCheckedChange={(v) => setNotifications({ ...notifications, push: v })}
-                                        />
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <div className="space-y-0.5">
-                                            <div className="flex items-center gap-2">
-                                                <Mail className="w-4 h-4 text-muted-foreground" />
-                                                <p className="text-sm font-bold">Email Notifications</p>
-                                            </div>
-                                            <p className="text-xs text-muted-foreground">Receive weekly updates & offers</p>
-                                        </div>
-                                        <Switch
-                                            checked={notifications.email}
-                                            onCheckedChange={(v) => setNotifications({ ...notifications, email: v })}
-                                        />
-                                    </div>
-                                </div>
+                                    <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                                </Link>
 
                                 <Link href="/profile/security" className="flex items-center justify-between p-6 hover:bg-muted/10 transition-colors group">
                                     <div className="flex items-center gap-4">
