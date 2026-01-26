@@ -1,0 +1,190 @@
+"use client"
+
+import { useState, useRef, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
+import {
+    ArrowLeft,
+    MoreVertical,
+    Image as ImageIcon,
+    Send,
+    ShoppingCart,
+    FileText,
+    CheckCircle2,
+    Clock
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { MOCK_CONVERSATIONS, MOCK_MESSAGES } from "@/lib/mockData"
+import { cn } from "@/lib/utils"
+
+export default function ChatDetailPage() {
+    const params = useParams()
+    const router = useRouter()
+    const scrollRef = useRef<HTMLDivElement>(null)
+
+    const convId = params.id as string
+    const conversation = MOCK_CONVERSATIONS.find(c => c.id === convId)
+    const [messages, setMessages] = useState(MOCK_MESSAGES[convId as keyof typeof MOCK_MESSAGES] || [])
+    const [newMessage, setNewMessage] = useState("")
+
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+        }
+    }, [messages])
+
+    if (!conversation) return <div>Conversation not found</div>
+
+    const handleSendMessage = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!newMessage.trim()) return
+
+        const msg = {
+            id: `m${Date.now()}`,
+            sender_id: "user_me",
+            message_text: newMessage,
+            created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            is_read: false
+        }
+
+        setMessages([...messages, msg])
+        setNewMessage("")
+
+        // Simulate reply
+        setTimeout(() => {
+            const reply = {
+                id: `r${Date.now()}`,
+                sender_id: conversation.seller_id,
+                message_text: "Got it! Let me check on that for you.",
+                created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                is_read: false
+            }
+            setMessages(prev => [...prev, reply])
+        }, 2000)
+    }
+
+    return (
+        <div className="flex flex-col h-screen bg-background max-w-screen-md mx-auto border-x border-border/40">
+            {/* Header */}
+            <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/40 p-4">
+                <div className="flex items-center gap-3">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full shrink-0">
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <Avatar className="h-10 w-10 ring-1 ring-border/50">
+                            <AvatarImage src={conversation.other_user.avatar} />
+                            <AvatarFallback>{conversation.other_user.name[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                            <h2 className="font-bold text-sm truncate">{conversation.other_user.name}</h2>
+                            <span className="text-[10px] text-green-500 font-bold flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                                Online
+                            </span>
+                        </div>
+                    </div>
+
+                    <Button variant="ghost" size="icon" className="rounded-full shrink-0">
+                        <MoreVertical className="h-5 w-5 text-muted-foreground" />
+                    </Button>
+                </div>
+
+                {/* Context Sub-header */}
+                <div className="mt-3 bg-muted/30 rounded-2xl p-3 flex items-center justify-between border border-border/40 group hover:border-primary/20 transition-colors">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="h-10 w-10 rounded-xl bg-background border border-border/40 flex items-center justify-center shrink-0">
+                            {conversation.context.type === "product" ? (
+                                <ShoppingCart className="h-5 w-5 text-primary" />
+                            ) : (
+                                <FileText className="h-5 w-5 text-primary" />
+                            )}
+                        </div>
+                        <div className="min-w-0">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                {conversation.context.type} Inquiry
+                            </p>
+                            <h3 className="text-xs font-bold truncate">{conversation.context.title}</h3>
+                        </div>
+                    </div>
+                    {conversation.context.price && (
+                        <div className="text-right shrink-0 ml-2">
+                            <p className="text-sm font-black text-primary">
+                                {conversation.context.price.toLocaleString()} <span className="text-[10px]">XAF</span>
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </header>
+
+            {/* Messages Area */}
+            <main
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar scroll-smooth"
+            >
+                <div className="text-center py-6">
+                    <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-widest bg-muted/40 inline-block px-3 py-1 rounded-full">
+                        Conversation Started • {new Date(conversation.created_at).toLocaleDateString()}
+                    </p>
+                </div>
+
+                {messages.map((msg, idx) => {
+                    const isMe = msg.sender_id === "user_me"
+                    return (
+                        <div
+                            key={msg.id}
+                            className={cn(
+                                "flex flex-col max-w-[80%]",
+                                isMe ? "ml-auto items-end" : "mr-auto items-start"
+                            )}
+                        >
+                            <div className={cn(
+                                "p-3.5 px-4 rounded-3xl text-sm leading-relaxed shadow-sm",
+                                isMe
+                                    ? "bg-primary text-primary-foreground rounded-tr-none"
+                                    : "bg-muted/60 text-foreground rounded-tl-none border border-border/20"
+                            )}>
+                                {msg.message_text}
+                            </div>
+                            <div className="flex items-center gap-1.5 mt-1.5 px-1">
+                                <span className="text-[10px] text-muted-foreground font-medium">{msg.created_at}</span>
+                                {isMe && (
+                                    <CheckCircle2 className={cn("h-3 w-3", msg.is_read ? "text-primary" : "text-muted-foreground/40")} />
+                                )}
+                            </div>
+                        </div>
+                    )
+                })}
+            </main>
+
+            {/* Input Bar */}
+            <footer className="p-4 bg-background border-t border-border/40 pb-8">
+                <form
+                    onSubmit={handleSendMessage}
+                    className="flex items-center gap-2 bg-muted/40 border border-border/40 rounded-3xl p-1.5 pl-4 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/30 transition-all"
+                >
+                    <button type="button" className="p-2 text-muted-foreground hover:text-primary transition-colors">
+                        <ImageIcon className="h-5 w-5" />
+                    </button>
+                    <Input
+                        placeholder="Type a message..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        className="flex-1 bg-transparent border-none focus-visible:ring-0 placeholder:text-muted-foreground/60 h-10 font-medium"
+                    />
+                    <Button
+                        type="submit"
+                        size="icon"
+                        disabled={!newMessage.trim()}
+                        className="rounded-full h-10 w-10 shadow-lg shadow-primary/20 active:scale-95 transition-transform"
+                    >
+                        <Send className="h-4 w-4" />
+                    </Button>
+                </form>
+            </footer>
+        </div>
+    )
+}

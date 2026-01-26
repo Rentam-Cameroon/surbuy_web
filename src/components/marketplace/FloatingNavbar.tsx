@@ -1,17 +1,24 @@
 "use client"
 
-import { Home, Search, FilePlus, User } from "lucide-react"
+import { Home, Search, FilePlus, User, MessageSquare } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
 export default function FloatingNavbar() {
     const router = useRouter()
     const pathname = usePathname()
+    const isSeller = pathname?.startsWith('/sell')
 
-    const navItems = [
+    const navItems = isSeller ? [
+        { icon: Home, label: "Home", path: "/sell" },
+        { icon: FilePlus, label: "Request", path: "/sell/requests" },
+        { icon: MessageSquare, label: "Messages", path: "/sell/messages" },
+        { icon: User, label: "Profile", path: "/sell/profile" },
+    ] : [
         { icon: Home, label: "Home", path: "/dashboard" },
         { icon: FilePlus, label: "Request", path: "/request" },
         { icon: Search, label: "Search", path: "/search" },
+        { icon: MessageSquare, label: "Messages", path: "/messages" },
         { icon: User, label: "Profile", path: "/profile" },
     ]
 

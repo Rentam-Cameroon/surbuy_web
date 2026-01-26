@@ -130,3 +130,67 @@ export const MOCK_REQUESTS = [
         urgency: "High"
     }
 ]
+
+export const MOCK_CONVERSATIONS = [
+    {
+        id: "conv1",
+        buyer_id: "user_me",
+        seller_id: "user_sarah",
+        product_id: 1, // iPhone 15
+        request_id: null,
+        status: "open",
+        created_at: "2024-01-20T10:00:00Z",
+        other_user: {
+            name: "Sarah Kang",
+            avatar: "https://i.pravatar.cc/150?u=sarah",
+            isOnline: true
+        },
+        context: {
+            type: "product",
+            title: "iPhone 15 Pro Max",
+            price: 850000
+        },
+        last_message: {
+            text: "Is the price negotiable?",
+            created_at: "10:30 AM",
+            is_read: true,
+            sender_id: "user_me"
+        }
+    },
+    {
+        id: "conv2",
+        buyer_id: "user_me",
+        seller_id: "user_jean",
+        product_id: null,
+        request_id: "req2", // Apartment
+        status: "open",
+        created_at: "2024-01-21T14:20:00Z",
+        other_user: {
+            name: "Jean Paul",
+            avatar: "https://i.pravatar.cc/150?u=jean",
+            isOnline: false
+        },
+        context: {
+            type: "request",
+            title: "Apartment in Bonapriso",
+            budget: 150000
+        },
+        last_message: {
+            text: "I have a studio available in Akwa, interested?",
+            created_at: "Yesterday",
+            is_read: false,
+            sender_id: "user_jean"
+        }
+    }
+]
+
+export const MOCK_MESSAGES = {
+    "conv1": [
+        { id: "m1", sender_id: "user_me", message_text: "Hello, I saw your iPhone 15 listing.", created_at: "10:00 AM", is_read: true },
+        { id: "m2", sender_id: "user_sarah", message_text: "Hi! Yes, it is still available.", created_at: "10:05 AM", is_read: true },
+        { id: "m3", sender_id: "user_me", message_text: "Is the price negotiable?", created_at: "10:30 AM", is_read: true }
+    ],
+    "conv2": [
+        { id: "m4", sender_id: "user_jean", message_text: "I have a studio available in Akwa, interested?", created_at: "Yesterday", is_read: false }
+    ]
+}

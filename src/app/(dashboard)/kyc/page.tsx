@@ -4,88 +4,37 @@ import { useKYCStore } from "@/store/useKYCStore"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { AnimatePresence, motion } from "framer-motion"
-import { ShieldCheck, UserCheck, FileText, CheckCircle } from "lucide-react"
-import { useState } from "react"
+import { ShieldCheck, UserCheck, FileText, CheckCircle, ArrowLeft } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import DocumentUpload from "./steps/DocumentUpload"
 import LiveSelfie from "./steps/LiveSelfie"
 import TaxDocument from "./steps/TaxDocument"
 
 export default function KYCPage() {
-    const { tier, setTier, reset } = useKYCStore()
-    const [currentStep, setCurrentStep] = useState(0) // 0: Tier Select, 1: ID, 2: Selfie, 3: Tax (if Tier 2), 4: Success, 5: Failed
-
-    const steps = [
-        { id: 'tier', title: 'Tier Selection' },
-        { id: 'id', title: 'Identity' },
-        { id: 'selfie', title: 'Liveness' },
-        ...(tier === 2 ? [{ id: 'tax', title: 'Address' }] : []),
-        { id: 'review', title: 'Review' }
-    ]
+    const { tier, setTier, idFront, idBack, selfieFile, taxFile } = useKYCStore()
+    const [currentStep, setCurrentStep] = useState(1) // 1: ID, 2: Selfie, 3: Tax, 4: Success
+    const router = useRouter()
 
     const handleNext = () => {
-        if (currentStep === 0) {
-            // Tier selected via buttons
-            setCurrentStep(1)
-        } else {
-            if (tier === 1 && currentStep === 2) {
-                // End of Tier 1
-                setCurrentStep(4)
-            } else if (tier === 2 && currentStep === 3) {
-                // End of Tier 2
-                setCurrentStep(4)
-            } else {
-                setCurrentStep(prev => prev + 1)
-            }
+        if (currentStep === 1) {
+            setCurrentStep(2)
+        } else if (currentStep === 2) {
+            setCurrentStep(3)
+        } else if (currentStep === 3) {
+            // Tax document is optional/handled in the component
+            setCurrentStep(4)
         }
     }
 
     const renderCurrentStep = () => {
         switch (currentStep) {
-            case 0:
-                return (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                        <div className="text-center space-y-2">
-                            <h2 className="text-2xl font-bold">Verify your Identity</h2>
-                            <p className="text-muted-foreground">Unlock selling features by verifying your account.</p>
-                        </div>
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <Card className="cursor-pointer hover:border-primary transition-all border-2 border-transparent" onClick={() => { setTier(1); setCurrentStep(1); }}>
-                                <CardContent className="p-6 flex flex-col items-center gap-4">
-                                    <UserCheck className="h-12 w-12 text-yellow-500" />
-                                    <div className="text-center">
-                                        <h3 className="font-bold text-lg">Yellow Badge (Tier 1)</h3>
-                                        <p className="text-sm text-muted-foreground">For casual sellers</p>
-                                    </div>
-                                    <ul className="text-sm space-y-1 text-left list-disc list-inside text-muted-foreground">
-                                        <li>Upload ID</li>
-                                        <li>Liveness Check</li>
-                                        <li>Limit: 500,000 XAF/mo</li>
-                                    </ul>
-                                </CardContent>
-                            </Card>
-                            <Card className="cursor-pointer hover:border-green-500 transition-all border-2 border-transparent" onClick={() => { setTier(2); setCurrentStep(1); }}>
-                                <CardContent className="p-6 flex flex-col items-center gap-4">
-                                    <ShieldCheck className="h-12 w-12 text-green-500" />
-                                    <div className="text-center">
-                                        <h3 className="font-bold text-lg">Green Badge (Tier 2)</h3>
-                                        <p className="text-sm text-muted-foreground">For pro sellers</p>
-                                    </div>
-                                    <ul className="text-sm space-y-1 text-left list-disc list-inside text-muted-foreground">
-                                        <li>All Tier 1 requirements</li>
-                                        <li>Utility Bill / Tax Doc</li>
-                                        <li>No selling limits</li>
-                                    </ul>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </motion.div>
-                )
             case 1:
                 return <DocumentUpload />
             case 2:
                 return <LiveSelfie />
             case 3:
-                return <TaxDocument />
+                return <TaxDocument onComplete={() => setCurrentStep(4)} />
             case 4:
                 return (
                     <div className="text-center space-y-6 py-8">
@@ -100,9 +49,8 @@ export default function KYCPage() {
                         </div>
                         <div>
                             <h2 className="text-2xl font-bold">Verification Submitted</h2>
-                            <p className="text-muted-foreground">Our team will review your documents shortly.</p>
+                            <p className="text-muted-foreground">Your verification is being processed. You'll be redirected to the sell dashboard shortly.</p>
                         </div>
-                        <Button onClick={() => window.location.href = '/dashboard'}>Go to Dashboard</Button>
                     </div>
                 )
             default:
@@ -110,32 +58,60 @@ export default function KYCPage() {
         }
     }
 
+    useEffect(() => {
+        if (currentStep === 4) {
+            const timer = setTimeout(() => {
+                router.push("/sell")
+            }, 3000)
+            return () => clearTimeout(timer)
+        }
+    }, [currentStep, router])
+
     return (
         <div className="min-h-screen bg-muted/30 p-4 md:p-8">
             <div className="max-w-2xl mx-auto space-y-8">
                 <div className="flex justify-between items-center px-2">
-                    <h1 className="text-xl font-bold text-primary">KYC Center</h1>
-                    {currentStep > 0 && currentStep < 4 && (
-                        <div className="text-sm text-muted-foreground">
-                            Step {currentStep} of {tier === 1 ? 2 : 3}
+                    <div className="flex items-center gap-3">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => router.back()}
+                            className="rounded-full"
+                        >
+                            <ArrowLeft className="h-5 w-5" />
+                        </Button>
+                        <h1 className="text-xl font-bold text-primary">Seller Verification</h1>
+                    </div>
+                    {currentStep < 4 && (
+                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                            Step {currentStep} of 3
                         </div>
                     )}
                 </div>
 
-                <Card className="glass shadow-xl">
-                    <CardContent className="p-6 md:p-10 min-h-[400px] flex flex-col justify-center">
+                <Card className="glass shadow-xl overflow-hidden">
+                    <CardContent className="p-0 min-h-[450px] flex flex-col justify-center">
                         <AnimatePresence mode="wait">
-                            {renderCurrentStep()}
+                            <div key={currentStep} className="p-6 md:p-10">
+                                {renderCurrentStep()}
+                            </div>
                         </AnimatePresence>
                     </CardContent>
                 </Card>
 
-                {currentStep > 0 && currentStep < 4 && (
+                {currentStep > 1 && currentStep < 3 && (
                     <div className="flex justify-between">
-                        <Button variant="ghost" onClick={() => setCurrentStep(currentStep - 1)}>
+                        <Button variant="outline" className="rounded-xl px-8" onClick={() => setCurrentStep(currentStep - 1)}>
                             Back
                         </Button>
-                        <Button onClick={handleNext}>
+                        <Button className="rounded-xl px-8 font-bold" onClick={handleNext}>
+                            Continue
+                        </Button>
+                    </div>
+                )}
+                {currentStep === 1 && (
+                    <div className="flex justify-end">
+                        <Button className="rounded-xl px-8 font-bold" onClick={handleNext}>
                             Continue
                         </Button>
                     </div>

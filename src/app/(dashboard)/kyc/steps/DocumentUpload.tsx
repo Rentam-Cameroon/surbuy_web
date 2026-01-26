@@ -1,37 +1,18 @@
 import { Button } from "@/components/ui/button"
 import { useKYCStore } from "@/store/useKYCStore"
 import { motion } from "framer-motion"
-import { UploadCloud, FileText, Check } from "lucide-react"
+import { UploadCloud, FileText, Check, ShieldCheck } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
+import { Label } from "@/components/ui/label"
 
 export default function DocumentUpload() {
-    const { setIdFile, idFile } = useKYCStore()
-    const [dragActive, setDragActive] = useState(false)
+    const { setIdFront, setIdBack, idFront, idBack } = useKYCStore()
 
-    const handleDrag = (e: React.DragEvent) => {
-        e.preventDefault()
-        e.stopPropagation()
-        if (e.type === "dragenter" || e.type === "dragover") {
-            setDragActive(true)
-        } else if (e.type === "dragleave") {
-            setDragActive(false)
-        }
-    }
-
-    const handleDrop = (e: React.DragEvent) => {
-        e.preventDefault()
-        e.stopPropagation()
-        setDragActive(false)
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            setIdFile(e.dataTransfer.files[0])
-        }
-    }
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        e.preventDefault()
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'front' | 'back') => {
         if (e.target.files && e.target.files[0]) {
-            setIdFile(e.target.files[0])
+            if (type === 'front') setIdFront(e.target.files[0])
+            else setIdBack(e.target.files[0])
         }
     }
 
@@ -39,56 +20,80 @@ export default function DocumentUpload() {
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
+            className="space-y-8"
         >
             <div className="text-center space-y-2">
-                <h2 className="text-xl font-semibold">Identity Verification</h2>
-                <p className="text-sm text-muted-foreground">
-                    Upload a clear photo of your ID card or Passport.
+                <h2 className="text-2xl font-bold">Identity Verification</h2>
+                <p className="text-muted-foreground text-sm">
+                    Upload clear photos of both sides of your National ID card or Passport.
                 </p>
             </div>
 
-            <div
-                className={cn(
-                    "relative flex flex-col items-center justify-center w-full h-48 rounded-xl border-2 border-dashed transition-colors",
-                    dragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25",
-                    idFile ? "border-green-500 bg-green-500/5" : "bg-muted/30"
-                )}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-            >
-                <input
-                    type="file"
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    onChange={handleChange}
-                    accept="image/*,.pdf"
-                />
+            <div className="grid gap-6">
+                {/* Front Side */}
+                <div className="space-y-3">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Front Side</Label>
+                    <div className={cn(
+                        "relative flex flex-col items-center justify-center w-full h-40 rounded-2xl border-2 border-dashed transition-all cursor-pointer overflow-hidden",
+                        idFront ? "border-green-500 bg-green-500/5 shadow-inner" : "border-muted-foreground/20 bg-muted/30 hover:bg-muted/50"
+                    )}>
+                        <input
+                            type="file"
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            onChange={(e) => handleFileChange(e, 'front')}
+                            accept="image/*"
+                        />
+                        {idFront ? (
+                            <div className="flex flex-col items-center text-green-600 animate-in fade-in zoom-in">
+                                <Check className="h-10 w-10 mb-2" />
+                                <p className="font-bold text-sm">{idFront.name}</p>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center text-muted-foreground">
+                                <UploadCloud className="h-10 w-10 mb-2 opacity-40" />
+                                <p className="font-bold text-sm">Upload Front Side</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
 
-                {idFile ? (
-                    <div className="flex flex-col items-center text-green-600">
-                        <Check className="h-10 w-10 mb-2" />
-                        <p className="font-medium">{idFile.name}</p>
-                        <p className="text-xs text-muted-foreground">{(idFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                {/* Back Side */}
+                <div className="space-y-3">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Back Side</Label>
+                    <div className={cn(
+                        "relative flex flex-col items-center justify-center w-full h-40 rounded-2xl border-2 border-dashed transition-all cursor-pointer overflow-hidden",
+                        idBack ? "border-green-500 bg-green-500/5 shadow-inner" : "border-muted-foreground/20 bg-muted/30 hover:bg-muted/50"
+                    )}>
+                        <input
+                            type="file"
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            onChange={(e) => handleFileChange(e, 'back')}
+                            accept="image/*"
+                        />
+                        {idBack ? (
+                            <div className="flex flex-col items-center text-green-600 animate-in fade-in zoom-in">
+                                <Check className="h-10 w-10 mb-2" />
+                                <p className="font-bold text-sm">{idBack.name}</p>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center text-muted-foreground">
+                                <UploadCloud className="h-10 w-10 mb-2 opacity-40" />
+                                <p className="font-bold text-sm">Upload Back Side</p>
+                            </div>
+                        )}
                     </div>
-                ) : (
-                    <div className="flex flex-col items-center text-muted-foreground">
-                        <UploadCloud className="h-10 w-10 mb-2" />
-                        <p className="font-medium">Click or drag file here</p>
-                        <p className="text-xs">JPG, PNG or PDF (Max 5MB)</p>
-                    </div>
-                )}
+                </div>
             </div>
 
-            <div className="flex gap-4">
-                <div className="flex-1 p-3 rounded-lg border bg-card/50 flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">1</div>
-                    <div className="text-xs text-muted-foreground">Government issued ID</div>
+            <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 flex gap-4">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <ShieldCheck className="h-5 w-5 text-primary" />
                 </div>
-                <div className="flex-1 p-3 rounded-lg border bg-card/50 flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">2</div>
-                    <div className="text-xs text-muted-foreground">Original (no photocopy)</div>
+                <div className="space-y-1">
+                    <p className="text-sm font-bold">Why verify?</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                        Verification protects our community from fraud and builds trust between buyers and sellers.
+                    </p>
                 </div>
             </div>
         </motion.div>
