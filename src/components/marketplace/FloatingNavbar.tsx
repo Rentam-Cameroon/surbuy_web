@@ -15,7 +15,7 @@ export default function FloatingNavbar() {
         { icon: MessageSquare, label: "Messages", path: "/sell/messages" },
         { icon: User, label: "Profile", path: "/sell/profile" },
     ] : [
-        { icon: Home, label: "Home", path: "/dashboard" },
+        { icon: Home, label: "Home", path: "/marketplace" },
         { icon: FilePlus, label: "Request", path: "/request" },
         { icon: Search, label: "Search", path: "/search" },
         { icon: MessageSquare, label: "Messages", path: "/messages" },

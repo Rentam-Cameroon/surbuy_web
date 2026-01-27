@@ -13,6 +13,10 @@ interface RegistrationState {
     bio: string
     password: string
     profileImage: File | null
+    isExistingUser: boolean | null
+    regStatus: 'none' | 'incomplete' | 'complete'
+    isPhoneVerified: boolean
+    isEmailVerified: boolean
 
     setStep: (step: number) => void
     setUserId: (id: string) => void
@@ -26,6 +30,9 @@ interface RegistrationState {
     setBio: (bio: string) => void
     setPassword: (password: string) => void
     setProfileImage: (file: File | null) => void
+    setRegistrationInfo: (exists: boolean, status: string) => void
+    setPhoneVerified: (verified: boolean) => void
+    setEmailVerified: (verified: boolean) => void
     reset: () => void
 }
 
@@ -42,9 +49,13 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
     bio: '',
     password: '',
     profileImage: null,
+    isExistingUser: null,
+    regStatus: 'none',
+    isPhoneVerified: false,
+    isEmailVerified: false,
 
     setStep: (step) => set({ step }),
-    setUserId: (id) => set({ userId: id }),
+    setUserId: (userId) => set({ userId }),
     setFullName: (fullName) => set({ fullName }),
     setCity: (city) => set({ city }),
     setNeighborhood: (neighborhood) => set({ neighborhood }),
@@ -55,6 +66,12 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
     setBio: (bio) => set({ bio }),
     setPassword: (password) => set({ password }),
     setProfileImage: (profileImage) => set({ profileImage }),
+    setRegistrationInfo: (exists, status) => set({
+        isExistingUser: exists,
+        regStatus: status as any
+    }),
+    setPhoneVerified: (isPhoneVerified) => set({ isPhoneVerified }),
+    setEmailVerified: (isEmailVerified) => set({ isEmailVerified }),
 
     reset: () => set({
         step: 1,
@@ -68,7 +85,11 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
         emailOtp: '',
         bio: '',
         password: '',
-        profileImage: null
+        profileImage: null,
+        isExistingUser: null,
+        regStatus: 'none',
+        isPhoneVerified: false,
+        isEmailVerified: false
     })
 })
 )

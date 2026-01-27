@@ -13,7 +13,7 @@ export default function StepChoice() {
         if (type === 'sell') {
             router.push('/kyc')
         } else {
-            router.push('/dashboard') // Or Main Market Page
+            router.push('/marketplace') // Or Main Market Page
         }
     }
 

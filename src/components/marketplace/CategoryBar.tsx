@@ -23,7 +23,7 @@ export default function CategoryBar() {
 
     const handleCategoryClick = (cat: typeof categories[0]) => {
         if (cat.id === 'all') {
-            router.push('/dashboard')
+            router.push('/marketplace')
         } else {
             router.push(`/view-all?title=${encodeURIComponent(cat.name)}&category=${cat.id}`)
         }

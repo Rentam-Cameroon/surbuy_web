@@ -11,9 +11,10 @@ interface ModalProps {
     title: string
     description?: string
     children: React.ReactNode
+    showBorder?: boolean
 }
 
-export function Modal({ isOpen, onClose, title, description, children }: ModalProps) {
+export function Modal({ isOpen, onClose, title, description, children, showBorder = true }: ModalProps) {
     if (typeof document === "undefined") return null
 
     return (
@@ -32,7 +33,10 @@ export function Modal({ isOpen, onClose, title, description, children }: ModalPr
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="bg-background w-full max-w-sm rounded-[32px] overflow-hidden shadow-2xl pointer-events-auto border border-border/40"
+                            className={cn(
+                                "bg-background w-full max-w-sm rounded-[32px] overflow-hidden shadow-2xl pointer-events-auto",
+                                showBorder && "border border-border/40"
+                            )}
                         >
                             <div className="p-6 md:p-8 space-y-4">
                                 <div className="space-y-2">

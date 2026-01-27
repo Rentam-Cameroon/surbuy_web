@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { useKYCStore } from "@/store/useKYCStore"
 import { motion } from "framer-motion"
-import { UploadCloud, FileText, Check, AlertCircle, Info, ArrowRight } from "lucide-react"
+import { UploadCloud, FileText, Check, AlertCircle, Info, ArrowRight, Clock, XCircle, ShieldCheck } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
@@ -14,11 +14,14 @@ interface TaxDocumentProps {
 }
 
 export default function TaxDocument({ onComplete }: TaxDocumentProps) {
-    const { setTaxFile, taxFile, setTier } = useKYCStore()
+    const { setTaxFile, taxFile, setTier, documents } = useKYCStore()
     const [showSkipDialog, setShowSkipDialog] = useState(false)
     const [showInfo, setShowInfo] = useState(false)
 
+    const isSubmitted = documents.tax_document.status === 'approved' || documents.tax_document.status === 'pending'
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (isSubmitted) return
         if (e.target.files && e.target.files[0]) {
             setTaxFile(e.target.files[0])
             setTier(2) // Providing document elevates to Green Badge
@@ -26,8 +29,42 @@ export default function TaxDocument({ onComplete }: TaxDocumentProps) {
     }
 
     const handleSkip = () => {
+        if (isSubmitted) return
         setTier(1) // Skipping keeps you at Yellow Badge
         onComplete()
+    }
+
+    const getStatusUI = () => {
+        const { status, rejection_reason } = documents.tax_document
+        switch (status) {
+            case 'approved':
+                return (
+                    <div className="flex items-center gap-2 text-green-600 font-bold text-xs bg-green-50 px-3 py-1 rounded-full border border-green-100">
+                        <Check className="h-3 w-3" /> Approved
+                    </div>
+                )
+            case 'pending':
+                return (
+                    <div className="flex items-center gap-2 text-blue-600 font-bold text-xs bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
+                        <Clock className="h-3 w-3" /> Under Review
+                    </div>
+                )
+            case 'rejected':
+                return (
+                    <div className="flex flex-col items-center gap-2">
+                        <div className="flex items-center gap-2 text-destructive font-bold text-xs bg-destructive/10 px-3 py-1 rounded-full border border-destructive/20">
+                            <XCircle className="h-3 w-3" /> Rejected
+                        </div>
+                        {rejection_reason && (
+                            <p className="text-[10px] text-destructive italic text-center max-w-[200px]">
+                                Reason: {rejection_reason}
+                            </p>
+                        )}
+                    </div>
+                )
+            default:
+                return null
+        }
     }
 
     return (
@@ -41,6 +78,9 @@ export default function TaxDocument({ onComplete }: TaxDocumentProps) {
                 <p className="text-muted-foreground text-sm">
                     Optionally provide your taxpayer document to unlock pro features.
                 </p>
+                <div className="flex justify-center mt-2">
+                    {getStatusUI()}
+                </div>
             </div>
 
             <div className="space-y-4">
@@ -66,19 +106,29 @@ export default function TaxDocument({ onComplete }: TaxDocumentProps) {
                 )}
 
                 <div className={cn(
-                    "relative flex flex-col items-center justify-center w-full h-48 rounded-2xl border-2 border-dashed transition-all cursor-pointer overflow-hidden",
-                    taxFile ? "border-green-500 bg-green-500/5 shadow-inner" : "border-muted-foreground/20 bg-muted/30 hover:bg-muted/50"
+                    "relative flex flex-col items-center justify-center w-full h-48 rounded-2xl border-2 border-dashed transition-all overflow-hidden",
+                    taxFile || isSubmitted ? "border-green-500 bg-green-500/5 shadow-inner" : "border-muted-foreground/20 bg-muted/30 hover:bg-muted/50",
+                    isSubmitted && "cursor-not-allowed opacity-80"
                 )}>
-                    <input
-                        type="file"
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        onChange={handleFileChange}
-                        accept="image/*,.pdf"
-                    />
-                    {taxFile ? (
+                    {!isSubmitted && (
+                        <input
+                            type="file"
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            onChange={handleFileChange}
+                            accept="image/*,.pdf"
+                        />
+                    )}
+
+                    {isSubmitted ? (
+                        <div className="flex flex-col items-center text-green-600">
+                            <ShieldCheck className="h-10 w-10 mb-2 opacity-50" />
+                            <p className="font-bold text-sm">Document Securely Stored</p>
+                            <p className="text-[10px] opacity-70">Tax documents are under verification</p>
+                        </div>
+                    ) : taxFile ? (
                         <div className="flex flex-col items-center text-green-600 animate-in fade-in zoom-in">
                             <Check className="h-10 w-10 mb-2" />
-                            <p className="font-bold text-sm">{taxFile.name}</p>
+                            <p className="font-bold text-sm truncate max-w-[200px]">{taxFile.name}</p>
                             <p className="text-[10px] opacity-60">Verified Document Attached</p>
                         </div>
                     ) : (
@@ -95,14 +145,16 @@ export default function TaxDocument({ onComplete }: TaxDocumentProps) {
                 <Button
                     className="w-full h-14 rounded-2xl font-bold text-lg shadow-lg shadow-primary/20"
                     onClick={() => onComplete()}
-                    disabled={!taxFile}
+                    disabled={(!taxFile && !isSubmitted)}
                 >
-                    Submit & Finish
+                    {isSubmitted ? "Continue" : "Submit & Finish"}
                 </Button>
 
-                <Button variant="ghost" className="w-full text-muted-foreground hover:text-foreground" onClick={() => setShowSkipDialog(true)}>
-                    I don't have this document, skip for now
-                </Button>
+                {!isSubmitted && (
+                    <Button variant="ghost" className="w-full text-muted-foreground hover:text-foreground" onClick={() => setShowSkipDialog(true)}>
+                        I don't have this document, skip for now
+                    </Button>
+                )}
 
                 <Modal
                     isOpen={showSkipDialog}

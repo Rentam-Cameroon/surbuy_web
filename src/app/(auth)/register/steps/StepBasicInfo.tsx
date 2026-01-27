@@ -71,8 +71,8 @@ export default function StepBasicInfo() {
                     />
                 </div>
 
-                <div className="flex justify-center">
-                    <Button className="min-w-[200px]" size="lg" onClick={handleNext}>
+                <div className="flex justify-center pt-4">
+                    <Button className="min-w-[200px] h-12 rounded-xl" size="lg" onClick={handleNext}>
                         Continue
                     </Button>
                 </div>

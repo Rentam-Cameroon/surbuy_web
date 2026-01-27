@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Camera, X, CheckCircle2, Hash, FileCheck } from "lucide-react"
+import { ArrowLeft, Camera, X, CheckCircle2, Hash, FileCheck, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,20 +17,30 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
+import { productService } from "@/lib/productService"
+import { motion, AnimatePresence } from "framer-motion"
+import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 
-const CATEGORIES = ['Phones', 'Laptops', 'Monitors', 'Tablets', 'Accessories', 'Other']
 const CONDITIONS = ['New', 'Like New', 'Good', 'Fair', 'For Parts']
+
+interface Category {
+    id: string
+    name: string
+}
 
 export default function AddProductPage() {
     const router = useRouter()
     const [images, setImages] = useState<string[]>([])
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isSuccess, setIsSuccess] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    const [categories, setCategories] = useState<Category[]>([])
+    const [isLoadingCategories, setIsLoadingCategories] = useState(true)
 
     const [formData, setFormData] = useState({
         title: "",
         description: "",
-        category: "",
+        category_id: "",
         condition: "",
         price: "",
         locationCity: "",
@@ -38,6 +48,20 @@ export default function AddProductPage() {
         serialNumber: "",
         hasReceipt: false
     })
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const data = await productService.listCategories()
+                setCategories(data || [])
+            } catch (err) {
+                console.error("Failed to fetch categories:", err)
+            } finally {
+                setIsLoadingCategories(false)
+            }
+        }
+        fetchCategories()
+    }, [])
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -50,18 +74,33 @@ export default function AddProductPage() {
         setImages(images.filter((_, i) => i !== index))
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsSubmitting(true)
+        setError(null)
 
-        // Simulate API call based on the schema
-        setTimeout(() => {
-            setIsSubmitting(false)
+        try {
+            await productService.createProduct({
+                title: formData.title,
+                description: formData.description,
+                category_id: formData.category_id,
+                condition: formData.condition,
+                price: Number(formData.price),
+                location_city: formData.locationCity,
+                neighborhood: formData.neighborhood,
+                serial_number: formData.serialNumber,
+                has_receipt: formData.hasReceipt
+            })
             setIsSuccess(true)
             setTimeout(() => {
                 router.push("/sell")
-            }, 2000)
-        }, 1500)
+            }, 3000)
+        } catch (err: any) {
+            console.error("Submission failed:", err)
+            setError(err.message || "Failed to publish listing")
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     if (isSuccess) {
@@ -93,10 +132,27 @@ export default function AddProductPage() {
                 </div>
             </header>
 
+            <AnimatePresence>
+                {error && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-center gap-3 text-destructive text-sm font-medium"
+                    >
+                        <AlertCircle className="h-4 w-4" />
+                        {error}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Image Upload Section */}
                 <div className="space-y-4">
                     <Label className="text-base font-bold">Product Photos (Max 5)</Label>
+                    <p className="text-[10px] text-muted-foreground bg-muted/30 p-3 rounded-xl border border-border/10 italic">
+                        Note: Image upload is currently in beta. Your listing will use a default placeholder if no images are attached.
+                    </p>
                     <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                         {images.map((src, idx) => (
                             <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border border-border/40 group">
@@ -136,20 +192,28 @@ export default function AddProductPage() {
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="category">Category</Label>
                                 <Select
                                     required
-                                    value={formData.category}
-                                    onValueChange={(val) => setFormData({ ...formData, category: val })}
+                                    value={formData.category_id}
+                                    onValueChange={(val) => setFormData({ ...formData, category_id: val })}
+                                    disabled={isLoadingCategories}
                                 >
                                     <SelectTrigger className="rounded-xl h-12">
-                                        <SelectValue placeholder="Select" />
+                                        {isLoadingCategories ? (
+                                            <div className="flex items-center gap-2">
+                                                <CupertinoActivityIndicator size={16} />
+                                                <span>Loading...</span>
+                                            </div>
+                                        ) : (
+                                            <SelectValue placeholder="Select" />
+                                        )}
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {CATEGORIES.map(cat => (
-                                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                        {categories.map(cat => (
+                                            <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -187,7 +251,7 @@ export default function AddProductPage() {
                                     required
                                     value={formData.price}
                                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                    className="rounded-xl h-12 pl-12"
+                                    className="rounded-xl h-12 pl-14"
                                 />
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">FCFA</span>
                             </div>
@@ -271,10 +335,15 @@ export default function AddProductPage() {
                 <div className="pt-4 flex gap-4">
                     <Button
                         type="submit"
-                        className="w-full h-14 text-lg font-bold rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all"
+                        className="w-full h-14 text-lg font-bold rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all gap-2"
                         disabled={isSubmitting}
                     >
-                        {isSubmitting ? "Publishing..." : "Publish Listing"}
+                        {isSubmitting ? (
+                            <>
+                                <CupertinoActivityIndicator size={20} color="white" />
+                                Publishing...
+                            </>
+                        ) : "Publish Listing"}
                     </Button>
                 </div>
             </form>

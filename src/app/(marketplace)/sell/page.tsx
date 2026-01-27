@@ -15,6 +15,7 @@ import {
 import Link from "next/link"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import { cn } from "@/lib/utils"
+import KYCOverlay from "@/components/marketplace/KYCOverlay"
 
 export default function SellDashboard() {
     const [showBanner, setShowBanner] = useState(true)
@@ -67,7 +68,7 @@ export default function SellDashboard() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <Link href="/dashboard">
+                        <Link href="/marketplace">
                             <Button size="sm" className="rounded-full h-9 px-5 font-bold shadow-lg shadow-primary/20 gap-1.5 active:scale-95 transition-all">
                                 <ShoppingBag className="h-4 w-4" />
                                 Marketplace

@@ -1,3 +1,5 @@
+"use client"
+
 import { Input } from "@/components/ui/input"
 import { Search, Bell, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -7,8 +9,24 @@ import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import ProductSection from "@/components/marketplace/ProductSection"
 import { MOCK_LISTINGS } from "@/lib/mockData"
 import Link from "next/link"
+import { useKYCStore } from "@/store/useKYCStore"
+import { useRouter } from "next/navigation"
 
 export default function Dashboard() {
+    const { documents, isFetched } = useKYCStore()
+    const router = useRouter()
+
+    const handleSellClick = () => {
+        const idSubmitted = documents.id_front.status === 'approved' || documents.id_front.status === 'pending'
+        const selfieSubmitted = documents.selfie.status === 'approved' || documents.selfie.status === 'pending'
+
+        if (idSubmitted && selfieSubmitted) {
+            router.push('/sell')
+        } else {
+            router.push('/kyc')
+        }
+    }
+
     return (
         <div className="min-h-screen bg-background pb-28 md:pb-8">
             {/* Header Section */}
@@ -25,12 +43,14 @@ export default function Dashboard() {
 
                         {/* Right Actions */}
                         <div className="flex items-center gap-3">
-                            <Link href="/kyc">
-                                <Button size="sm" className="rounded-full h-9 px-5 font-bold shadow-lg shadow-primary/20 gap-1.5 active:scale-95 transition-all">
-                                    <Plus className="w-4 h-4" />
-                                    Sell
-                                </Button>
-                            </Link>
+                            <Button
+                                onClick={handleSellClick}
+                                size="sm"
+                                className="rounded-full h-9 px-5 font-bold shadow-lg shadow-primary/20 gap-1.5 active:scale-95 transition-all"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Sell
+                            </Button>
                             <Link href="/notifications">
                                 <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 text-muted-foreground relative">
                                     <Bell className="h-5 w-5" />

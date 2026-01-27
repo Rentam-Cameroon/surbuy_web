@@ -75,11 +75,11 @@ export default function StepProfile() {
                     />
                 </div>
 
-                <div className="flex gap-3 justify-center">
-                    <Button variant="outline" className="w-32" onClick={handleNext}>
+                <div className="flex gap-3 justify-center pt-4">
+                    <Button variant="outline" className="w-32 h-12 rounded-xl" onClick={handleNext}>
                         Skip
                     </Button>
-                    <Button className="w-32" onClick={handleNext}>
+                    <Button className="w-32 h-12 rounded-xl" onClick={handleNext}>
                         Continue
                     </Button>
                 </div>
