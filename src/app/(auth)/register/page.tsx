@@ -9,6 +9,7 @@ import StepProfile from "./steps/StepProfile"
 import StepEmailVerification from "./steps/StepEmailVerification"
 import StepPassword from "./steps/StepPassword"
 import StepChoice from "./steps/StepChoice"
+import Link from "next/link"
 
 export default function RegisterPage() {
     const { step } = useRegistrationStore()
@@ -45,6 +46,15 @@ export default function RegisterPage() {
                         ))}
                     </div>
                 )}
+
+                <div className="text-center">
+                    <Link
+                        href="/marketplace"
+                        className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors"
+                    >
+                        Skip for now
+                    </Link>
+                </div>
             </div>
         </main>
     )

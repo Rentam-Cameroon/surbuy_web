@@ -17,7 +17,13 @@ import { useEffect, useState } from "react"
 import { requestService } from "@/lib/requestService"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import { useRequestCache } from "@/contexts/RequestCacheContext"
-import { getCities, getNeighborhoodsForCity } from "@/lib/locations"
+import { getCityNames, getNeighborhoodsForCity } from "@/lib/locations"
+import { productService } from "@/lib/productService"
+
+interface Category {
+    id: string
+    name: string
+}
 
 export default function CreateRequestPage() {
     const router = useRouter()
@@ -37,6 +43,8 @@ export default function CreateRequestPage() {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState("")
     const [availableNeighborhoods, setAvailableNeighborhoods] = useState<string[]>([])
+    const [categories, setCategories] = useState<Category[]>([])
+    const [isLoadingCategories, setIsLoadingCategories] = useState(true)
 
     useEffect(() => {
         if (formData.location_city) {
@@ -47,11 +55,26 @@ export default function CreateRequestPage() {
     }, [formData.location_city])
 
     useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const data = await productService.listCategories()
+                setCategories(data || [])
+            } catch (err) {
+                console.error("Failed to fetch categories:", err)
+            } finally {
+                setIsLoadingCategories(false)
+            }
+        }
+
+        fetchCategories()
+    }, [])
+
+    useEffect(() => {
         const fetchRequest = async () => {
             if (!editId) return
 
             try {
-                const requests = await requestService.listRequests()
+                const requests = await requestService.listMyRequests()
                 const request = requests.find((r: any) => r.id === editId)
 
                 if (request) {
@@ -149,17 +172,25 @@ export default function CreateRequestPage() {
                         required
                         value={formData.category}
                         onValueChange={(val) => setFormData({ ...formData, category: val })}
+                        disabled={isLoadingCategories}
                     >
                         <SelectTrigger className="rounded-xl h-12">
                             <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="Electronics">Electronics</SelectItem>
-                            <SelectItem value="Furniture">Furniture</SelectItem>
-                            <SelectItem value="Vehicles">Vehicles</SelectItem>
-                            <SelectItem value="Real Estate">Real Estate</SelectItem>
-                            <SelectItem value="Fashion">Fashion</SelectItem>
-                            <SelectItem value="Other">Other</SelectItem>
+                            {isLoadingCategories ? (
+                                <div className="flex items-center justify-center py-3">
+                                    <CupertinoActivityIndicator size={18} />
+                                </div>
+                            ) : categories.length > 0 ? (
+                                categories.map((category) => (
+                                    <SelectItem key={category.id} value={category.name}>
+                                        {category.name}
+                                    </SelectItem>
+                                ))
+                            ) : (
+                                <div className="px-3 py-2 text-sm text-muted-foreground">No categories found.</div>
+                            )}
                         </SelectContent>
                     </Select>
                 </div>
@@ -189,7 +220,7 @@ export default function CreateRequestPage() {
                             onChange={(e) => setFormData({ ...formData, location_city: e.target.value })}
                         />
                         <datalist id="cities">
-                            {getCities().map(city => (
+                            {getCityNames().map(city => (
                                 <option key={city} value={city} />
                             ))}
                         </datalist>

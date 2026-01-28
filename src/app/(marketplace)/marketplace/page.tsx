@@ -1,10 +1,8 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
-import { Search, Bell, Plus } from "lucide-react"
+import { Bell, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import CategoryBar from "@/components/marketplace/CategoryBar"
-import ListingCard from "@/components/marketplace/ListingCard"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import ProductSection from "@/components/marketplace/ProductSection"
 import { MOCK_LISTINGS } from "@/lib/mockData"

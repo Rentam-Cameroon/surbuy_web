@@ -9,7 +9,7 @@ interface RequestCardProps {
     request: {
         id: string
         title: string
-        max_budget: number
+        max_budget: number | string | null
         location_city: string
         neighborhood?: string
         description: string
@@ -33,6 +33,8 @@ export default function RequestCard({ request, onRespond }: RequestCardProps) {
         if (diffDays < 7) return `${diffDays}d ago`
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     }
+
+    const budget = Number(request.max_budget ?? 0)
 
     return (
         <Card className="hover:shadow-lg transition-all duration-300 border-border/50 overflow-hidden group">
@@ -58,7 +60,7 @@ export default function RequestCard({ request, onRespond }: RequestCardProps) {
 
                 <div className="flex items-center justify-between text-sm">
                     <div className="font-bold text-primary">
-                        Budget: {request.max_budget.toLocaleString()} XAF
+                        Budget: {Number.isFinite(budget) ? budget.toLocaleString() : "0"} XAF
                     </div>
                     <div className="flex items-center text-muted-foreground text-xs gap-1 opacity-80">
                         <MapPin className="w-3 h-3" />

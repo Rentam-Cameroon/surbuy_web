@@ -99,9 +99,11 @@ export default function SellDashboard() {
                             <p className="text-sm text-balance text-muted-foreground leading-relaxed max-w-[200px]">
                                 List your first item today and reach thousands of buyers.
                             </p>
-                            <Button variant="outline" className="mt-4 rounded-xl font-bold border-primary text-primary hover:bg-primary/5">
-                                Read our guideline
-                            </Button>
+                            <Link href="/sell/safety">
+                                <Button variant="outline" className="mt-4 rounded-xl font-bold border-primary text-primary hover:bg-primary/5">
+                                    Read our guideline
+                                </Button>
+                            </Link>
                         </div>
                         <ShoppingBag className="absolute -bottom-6 -right-6 w-32 h-32 text-primary opacity-5 -rotate-12 group-hover:scale-110 transition-transform duration-500" />
                     </div >

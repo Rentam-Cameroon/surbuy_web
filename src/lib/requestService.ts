@@ -49,6 +49,21 @@ export const requestService = {
         return resData.requests
     },
 
+    async listMyRequests() {
+        const token = getTokenFromCookie()
+        const response = await fetch('/api/request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                step: 'list_my_requests',
+                token
+            })
+        })
+        const resData = await response.json()
+        if (!response.ok) throw new Error(resData.error || 'Failed to list your requests')
+        return resData.requests
+    },
+
     async updateRequest(requestId: string, updates: Partial<RequestData>) {
         const token = getTokenFromCookie()
         const response = await fetch('/api/request', {

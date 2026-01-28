@@ -7,23 +7,28 @@ export async function POST(request: Request) {
         const cookieStore = await cookies()
         const token = cookieStore.get('auth_token')?.value
 
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
         const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+        if (!supabaseUrl || !anonKey) {
+            return NextResponse.json({ error: 'Missing Supabase configuration' }, { status: 500 })
+        }
+
+        const requiresAuth = body?.step !== 'list_requests'
+        if (requiresAuth && !token) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
 
         const response = await fetch(`${supabaseUrl}/functions/v1/request`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'apikey': anonKey!,
+                'apikey': anonKey,
                 'Authorization': `Bearer ${anonKey}`
             },
             body: JSON.stringify({
                 ...body,
-                token
+                ...(token ? { token } : {})
             })
         })
 

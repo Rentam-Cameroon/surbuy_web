@@ -8,23 +8,47 @@ import { useRouter } from "next/navigation"
 interface VerificationDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
-    type: 'auth' | 'kyc'
+    type: 'auth' | 'kyc' | 'confirm'
     onConfirm?: () => void
+    title?: string
+    description?: string
+    confirmLabel?: string
+    cancelLabel?: string
 }
 
-export function VerificationDialog({ open, onOpenChange, type, onConfirm }: VerificationDialogProps) {
+export function VerificationDialog({
+    open,
+    onOpenChange,
+    type,
+    onConfirm,
+    title,
+    description,
+    confirmLabel,
+    cancelLabel
+}: VerificationDialogProps) {
     const router = useRouter()
 
     const handleConfirm = () => {
         if (onConfirm) {
             onConfirm()
         } else if (type === 'auth') {
-            router.push('/auth')
+            router.push('/register')
         } else {
             router.push('/kyc')
         }
         onOpenChange(false)
     }
+
+    const resolvedTitle = title ?? (type === 'auth' ? 'Login Required' : type === 'kyc' ? 'KYC Verification Required' : 'Confirm Action')
+    const resolvedDescription = description ?? (
+        type === 'auth'
+            ? 'You need to be logged in to respond to requests.'
+            : type === 'kyc'
+                ? 'You need to complete KYC verification (Level 1 or higher) to respond to requests.'
+                : 'Please confirm you want to proceed.'
+    )
+    const resolvedConfirmLabel = confirmLabel ?? (type === 'auth' ? 'Login' : type === 'kyc' ? 'Start KYC' : 'Confirm')
+    const resolvedCancelLabel = cancelLabel ?? 'Cancel'
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -34,13 +58,10 @@ export function VerificationDialog({ open, onOpenChange, type, onConfirm }: Veri
                         <AlertCircle className="h-6 w-6 text-yellow-600" />
                     </div>
                     <DialogTitle className="text-center">
-                        {type === 'auth' ? 'Login Required' : 'KYC Verification Required'}
+                        {resolvedTitle}
                     </DialogTitle>
                     <DialogDescription className="text-center">
-                        {type === 'auth'
-                            ? 'You need to be logged in to respond to requests.'
-                            : 'You need to complete KYC verification (Level 1 or higher) to respond to requests.'
-                        }
+                        {resolvedDescription}
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="flex-row gap-2 sm:justify-center">
@@ -49,13 +70,13 @@ export function VerificationDialog({ open, onOpenChange, type, onConfirm }: Veri
                         onClick={() => onOpenChange(false)}
                         className="flex-1 rounded-xl"
                     >
-                        Cancel
+                        {resolvedCancelLabel}
                     </Button>
                     <Button
                         onClick={handleConfirm}
                         className="flex-1 rounded-xl"
                     >
-                        {type === 'auth' ? 'Login' : 'Start KYC'}
+                        {resolvedConfirmLabel}
                     </Button>
                 </DialogFooter>
             </DialogContent>

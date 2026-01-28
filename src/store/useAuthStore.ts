@@ -11,6 +11,9 @@ interface User {
     reg_status: string
     is_phone_verified: boolean
     is_email_verified: boolean
+    kyc_status?: string
+    kyc_tier?: number
+    is_admin?: boolean
     bio?: string
     created_at?: string
 }

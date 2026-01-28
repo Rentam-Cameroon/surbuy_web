@@ -1,6 +1,5 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
 import { Search, ArrowLeft } from "lucide-react"
 import ListingCard from "@/components/marketplace/ListingCard"
 import { MOCK_LISTINGS } from "@/lib/mockData"
@@ -26,6 +25,10 @@ export default function ViewAllPage() {
         return true
     })
 
+    const handleSearchClick = () => {
+        router.push('/search')
+    }
+
     return (
         <div className="min-h-screen bg-background pb-20">
             {/* Header */}
@@ -37,7 +40,7 @@ export default function ViewAllPage() {
                         </Button>
                         <h1 className="text-lg font-bold truncate max-w-[200px]">{title}</h1>
                     </div>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" onClick={handleSearchClick}>
                         <Search className="h-5 w-5 text-muted-foreground" />
                     </Button>
                 </div>
