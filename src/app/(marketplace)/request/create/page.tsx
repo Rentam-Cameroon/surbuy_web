@@ -1,7 +1,7 @@
 "use client"
 
 import { useSearchParams, useRouter } from "next/navigation"
-import { ArrowLeft, ChevronLeft } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,44 +14,93 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { useEffect, useState } from "react"
+import { requestService } from "@/lib/requestService"
+import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
+import { useRequestCache } from "@/contexts/RequestCacheContext"
+import { getCities, getNeighborhoodsForCity } from "@/lib/locations"
 
 export default function CreateRequestPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const editId = searchParams.get("edit")
     const isEdit = !!editId
+    const { invalidateCache } = useRequestCache()
 
-    // State for pre-filling (Mock simulation)
     const [formData, setFormData] = useState({
         title: "",
         category: "",
-        maxBudget: "",
-        city: "",
+        max_budget: "",
+        location_city: "",
         neighborhood: "",
         description: ""
     })
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [error, setError] = useState("")
+    const [availableNeighborhoods, setAvailableNeighborhoods] = useState<string[]>([])
 
     useEffect(() => {
-        if (isEdit) {
-            // Simulate fetching data for the request
-            // In a real app, this would be a DB fetch
-            if (editId === "my-1") {
-                setFormData({
-                    title: "Used iPhone 12 Pro",
-                    category: "electronics",
-                    maxBudget: "250000",
-                    city: "Douala",
-                    neighborhood: "Akwa",
-                    description: "Need a clean UK used iPhone 12 Pro. Battery health should be above 85%."
-                })
+        if (formData.location_city) {
+            setAvailableNeighborhoods(getNeighborhoodsForCity(formData.location_city))
+        } else {
+            setAvailableNeighborhoods([])
+        }
+    }, [formData.location_city])
+
+    useEffect(() => {
+        const fetchRequest = async () => {
+            if (!editId) return
+
+            try {
+                const requests = await requestService.listRequests()
+                const request = requests.find((r: any) => r.id === editId)
+
+                if (request) {
+                    setFormData({
+                        title: request.title || "",
+                        category: request.category || "",
+                        max_budget: request.max_budget?.toString() || "",
+                        location_city: request.location_city || "",
+                        neighborhood: request.neighborhood || "",
+                        description: request.description || ""
+                    })
+                }
+            } catch (err) {
+                console.error("Failed to fetch request:", err)
             }
         }
-    }, [isEdit, editId])
 
-    const handleSubmit = (e: React.FormEvent) => {
+        fetchRequest()
+    }, [editId])
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        // Simulate submission
-        router.push("/request/my-requests")
+        setError("")
+
+        try {
+            setIsSubmitting(true)
+
+            const data = {
+                title: formData.title,
+                description: formData.description,
+                category: formData.category,
+                max_budget: parseInt(formData.max_budget),
+                location_city: formData.location_city,
+                neighborhood: formData.neighborhood || undefined
+            }
+
+            if (isEdit) {
+                await requestService.updateRequest(editId, data)
+            } else {
+                await requestService.createRequest(data)
+            }
+
+            invalidateCache()
+            router.push("/request/my-requests")
+        } catch (err: any) {
+            setError(err.message || "Failed to save request")
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     return (
@@ -74,6 +123,12 @@ export default function CreateRequestPage() {
                     </p>
                 </div>
             </header>
+
+            {error && (
+                <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl text-destructive text-sm">
+                    {error}
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
@@ -99,12 +154,12 @@ export default function CreateRequestPage() {
                             <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="electronics">Electronics</SelectItem>
-                            <SelectItem value="furniture">Furniture</SelectItem>
-                            <SelectItem value="vehicles">Vehicles</SelectItem>
-                            <SelectItem value="real-estate">Real Estate</SelectItem>
-                            <SelectItem value="fashion">Fashion</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
+                            <SelectItem value="Electronics">Electronics</SelectItem>
+                            <SelectItem value="Furniture">Furniture</SelectItem>
+                            <SelectItem value="Vehicles">Vehicles</SelectItem>
+                            <SelectItem value="Real Estate">Real Estate</SelectItem>
+                            <SelectItem value="Fashion">Fashion</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -117,20 +172,27 @@ export default function CreateRequestPage() {
                             type="number"
                             placeholder="e.g. 500000"
                             className="rounded-xl h-12"
-                            value={formData.maxBudget}
-                            onChange={(e) => setFormData({ ...formData, maxBudget: e.target.value })}
+                            value={formData.max_budget}
+                            onChange={(e) => setFormData({ ...formData, max_budget: e.target.value })}
                         />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="location_city">City</Label>
                         <Input
                             id="location_city"
+                            list="cities"
                             placeholder="e.g. Douala"
                             required
+                            maxLength={50}
                             className="rounded-xl h-12"
-                            value={formData.city}
-                            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                            value={formData.location_city}
+                            onChange={(e) => setFormData({ ...formData, location_city: e.target.value })}
                         />
+                        <datalist id="cities">
+                            {getCities().map(city => (
+                                <option key={city} value={city} />
+                            ))}
+                        </datalist>
                     </div>
                 </div>
 
@@ -138,11 +200,19 @@ export default function CreateRequestPage() {
                     <Label htmlFor="neighborhood">Neighborhood (Optional)</Label>
                     <Input
                         id="neighborhood"
+                        list="neighborhoods"
                         placeholder="e.g. Akwa"
+                        maxLength={50}
                         className="rounded-xl h-12"
                         value={formData.neighborhood}
                         onChange={(e) => setFormData({ ...formData, neighborhood: e.target.value })}
+                        disabled={!formData.location_city}
                     />
+                    <datalist id="neighborhoods">
+                        {availableNeighborhoods.map(neighborhood => (
+                            <option key={neighborhood} value={neighborhood} />
+                        ))}
+                    </datalist>
                 </div>
 
                 <div className="space-y-2">
@@ -157,8 +227,17 @@ export default function CreateRequestPage() {
                     />
                 </div>
 
-                <Button type="submit" className="w-full h-14 text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all">
-                    {isEdit ? "Update Request" : "Post Request"}
+                <Button
+                    type="submit"
+                    className="w-full h-14 text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all"
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? (
+                        <>
+                            <CupertinoActivityIndicator size={20} color="white" />
+                            {isEdit ? "Updating..." : "Posting..."}
+                        </>
+                    ) : (isEdit ? "Update Request" : "Post Request")}
                 </Button>
             </form>
         </div>
