@@ -27,7 +27,20 @@ export async function POST(request: Request) {
             })
         })
 
-        const data = await response.json()
+        const responseText = await response.text()
+        console.log('Edge Function Response:', responseText)
+
+        let data
+        try {
+            data = JSON.parse(responseText)
+        } catch (e) {
+            console.error('Failed to parse response as JSON:', responseText.substring(0, 500))
+            return NextResponse.json({
+                error: 'Invalid response from server',
+                details: responseText.substring(0, 200)
+            }, { status: 500 })
+        }
+
         return NextResponse.json(data, { status: response.status })
     } catch (error: any) {
         console.error('SELL PRODUCT PROXY ERROR:', error)

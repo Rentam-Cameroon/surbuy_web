@@ -10,6 +10,7 @@ export interface ProductData {
     neighborhood?: string
     serial_number?: string
     has_receipt: boolean
+    images?: Array<{ base64: string; ext: string }>
 }
 
 export const productService = {

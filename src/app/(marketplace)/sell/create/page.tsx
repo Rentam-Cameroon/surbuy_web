@@ -20,6 +20,7 @@ import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import { productService } from "@/lib/productService"
 import { motion, AnimatePresence } from "framer-motion"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
+import { getCityNames, getNeighborhoodsForCity } from "@/lib/locations"
 
 const CONDITIONS = ['New', 'Like New', 'Good', 'Fair', 'For Parts']
 
@@ -30,12 +31,14 @@ interface Category {
 
 export default function AddProductPage() {
     const router = useRouter()
-    const [images, setImages] = useState<string[]>([])
+    const [images, setImages] = useState<File[]>([])
+    const [imagePreviews, setImagePreviews] = useState<string[]>([])
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isSuccess, setIsSuccess] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [categories, setCategories] = useState<Category[]>([])
     const [isLoadingCategories, setIsLoadingCategories] = useState(true)
+    const [availableNeighborhoods, setAvailableNeighborhoods] = useState<string[]>([])
 
     const [formData, setFormData] = useState({
         title: "",
@@ -63,15 +66,46 @@ export default function AddProductPage() {
         fetchCategories()
     }, [])
 
+    useEffect(() => {
+        if (formData.locationCity) {
+            const neighborhoods = getNeighborhoodsForCity(formData.locationCity)
+            setAvailableNeighborhoods(neighborhoods)
+        } else {
+            setAvailableNeighborhoods([])
+        }
+    }, [formData.locationCity])
+
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            const newImages = Array.from(e.target.files).map(file => URL.createObjectURL(file))
-            setImages([...images, ...newImages].slice(0, 5))
+            const newFiles = Array.from(e.target.files)
+            const combined = [...images, ...newFiles].slice(0, 5)
+            setImages(combined)
+
+            // Create preview URLs
+            const previews = combined.map(file => URL.createObjectURL(file))
+            setImagePreviews(previews)
         }
     }
 
     const removeImage = (index: number) => {
-        setImages(images.filter((_, i) => i !== index))
+        const newImages = images.filter((_, i) => i !== index)
+        const newPreviews = imagePreviews.filter((_, i) => i !== index)
+        setImages(newImages)
+        setImagePreviews(newPreviews)
+    }
+
+    const fileToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader()
+            reader.readAsDataURL(file)
+            reader.onload = () => {
+                const result = reader.result as string
+                // Remove data:image/xxx;base64, prefix
+                const base64 = result.split(',')[1]
+                resolve(base64)
+            }
+            reader.onerror = error => reject(error)
+        })
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -80,6 +114,15 @@ export default function AddProductPage() {
         setError(null)
 
         try {
+            // Convert images to base64
+            const imageData = await Promise.all(
+                images.map(async (file) => {
+                    const base64 = await fileToBase64(file)
+                    const ext = file.name.split('.').pop() || 'jpg'
+                    return { base64, ext }
+                })
+            )
+
             await productService.createProduct({
                 title: formData.title,
                 description: formData.description,
@@ -89,7 +132,8 @@ export default function AddProductPage() {
                 location_city: formData.locationCity,
                 neighborhood: formData.neighborhood,
                 serial_number: formData.serialNumber,
-                has_receipt: formData.hasReceipt
+                has_receipt: formData.hasReceipt,
+                images: imageData.length > 0 ? imageData : undefined
             })
             setIsSuccess(true)
             setTimeout(() => {
@@ -154,7 +198,7 @@ export default function AddProductPage() {
                         Note: Image upload is currently in beta. Your listing will use a default placeholder if no images are attached.
                     </p>
                     <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                        {images.map((src, idx) => (
+                        {imagePreviews.map((src, idx) => (
                             <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border border-border/40 group">
                                 <img src={src} alt={`Upload ${idx}`} className="w-full h-full object-cover" />
                                 <button
@@ -261,13 +305,19 @@ export default function AddProductPage() {
                             <Label htmlFor="city">City (Max 50 characters)</Label>
                             <Input
                                 id="city"
+                                list="cities"
                                 maxLength={50}
                                 placeholder="e.g. Douala"
                                 required
                                 value={formData.locationCity}
-                                onChange={(e) => setFormData({ ...formData, locationCity: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, locationCity: e.target.value, neighborhood: "" })}
                                 className="rounded-xl h-12"
                             />
+                            <datalist id="cities">
+                                {getCityNames().map(city => (
+                                    <option key={city} value={city} />
+                                ))}
+                            </datalist>
                         </div>
                     </div>
 
@@ -275,12 +325,19 @@ export default function AddProductPage() {
                         <Label htmlFor="neighborhood">Neighborhood (Max 50 characters)</Label>
                         <Input
                             id="neighborhood"
+                            list="neighborhoods"
                             maxLength={50}
                             placeholder="e.g. Akwa"
                             value={formData.neighborhood}
                             onChange={(e) => setFormData({ ...formData, neighborhood: e.target.value })}
                             className="rounded-xl h-12"
+                            disabled={!formData.locationCity}
                         />
+                        <datalist id="neighborhoods">
+                            {availableNeighborhoods.map(neighborhood => (
+                                <option key={neighborhood} value={neighborhood} />
+                            ))}
+                        </datalist>
                     </div>
 
                     {/* Additional Details */}
