@@ -1,26 +1,46 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Plus, Package, Search, Filter } from "lucide-react"
+import { Plus, Package, Search, Filter, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
 import { productService } from "@/lib/productService"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import { cn } from "@/lib/utils"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useProductCache } from "@/contexts/ProductCacheContext"
 
 export default function MyProductsPage() {
-    const [products, setProducts] = useState<any[]>([])
+    const router = useRouter()
+    const { getProducts, setProducts, invalidateCache } = useProductCache()
+    const [products, setProductsState] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
     const [isSearching, setIsSearching] = useState(false)
+    const [actioningProductId, setActioningProductId] = useState<string | null>(null)
 
     const fetchProducts = async () => {
+        // Check cache first
+        const cachedProducts = getProducts()
+        if (cachedProducts) {
+            setProductsState(cachedProducts)
+            setIsLoading(false)
+            return
+        }
+
         try {
             setIsLoading(true)
             const data = await productService.listMyProducts()
-            setProducts(data || [])
+            setProductsState(data || [])
+            setProducts(data || []) // Update cache
         } catch (error) {
             console.error("Failed to fetch products:", error)
         } finally {
@@ -50,15 +70,43 @@ export default function MyProductsPage() {
         }
     }
 
+    const handleStatusUpdate = async (productId: string, status: 'sold' | 'deleted') => {
+        if (!confirm(`Are you sure you want to mark this product as ${status}?`)) return
+
+        try {
+            setActioningProductId(productId)
+            await productService.updateProductStatus(productId, status)
+            // Invalidate cache and refresh
+            invalidateCache()
+            fetchProducts()
+        } catch (error) {
+            console.error("Status update failed:", error)
+            alert(`Failed to update product status`)
+        } finally {
+            setActioningProductId(null)
+        }
+    }
+
     return (
-        <div className="min-h-screen bg-background pb-32">
+        <div className="min-h-screen bg-background pb-20 md:pb-32">
             <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/40 px-6 py-4">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-xl font-bold tracking-tight">My Products</h1>
+                <div className="flex items-center gap-4">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => router.back()}
+                        className="rounded-full"
+                    >
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <div className="flex-1">
+                        <h1 className="text-2xl font-bold tracking-tight">My Products</h1>
+                        <p className="text-muted-foreground text-sm">Manage your listings</p>
+                    </div>
                     <Link href="/sell/create">
-                        <Button size="sm" className="rounded-full gap-2">
+                        <Button className="rounded-full gap-2">
                             <Plus className="h-4 w-4" />
-                            Add New
+                            <span className="hidden sm:inline">Add Product</span>
                         </Button>
                     </Link>
                 </div>
@@ -89,26 +137,59 @@ export default function MyProductsPage() {
                     </div>
                 ) : products.length > 0 ? (
                     <div className="grid gap-4">
-                        {products.map((product) => (
-                            <div key={product.id} className="bg-muted/30 rounded-2xl p-4 flex gap-4 items-center border border-border/10">
-                                <div className="h-16 w-16 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                                    <Package className="h-8 w-8 text-muted-foreground/40" />
+                        {products.map((product) => {
+                            const firstImage = product.images?.[0]?.image_url
+
+                            return (
+                                <div key={product.id} className="bg-muted/30 rounded-2xl p-4 border border-border/10">
+                                    <div className="flex gap-4 items-start">
+                                        <div className="h-16 w-16 rounded-xl bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+                                            {firstImage ? (
+                                                <img src={firstImage} alt={product.title} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Package className="h-8 w-8 text-muted-foreground/40" />
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-bold truncate">{product.title}</h3>
+                                            <p className="text-xs text-muted-foreground line-clamp-1">{product.category} • {product.condition}</p>
+                                            <p className="text-sm font-black text-primary mt-1">{product.price.toLocaleString()} FCFA</p>
+                                        </div>
+                                        <div className={cn(
+                                            "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shrink-0",
+                                            product.status === 'approved' ? "bg-green-100 text-green-600" :
+                                                product.status === 'pending' ? "bg-blue-100 text-blue-600" :
+                                                    product.status === 'sold' ? "bg-gray-100 text-gray-600" :
+                                                        "bg-red-100 text-red-600"
+                                        )}>
+                                            {product.status || 'pending'}
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2 mt-3 pt-3 border-t border-border/20">
+                                        <Link href={`/sell/create?edit=${product.id}`} className="flex-1">
+                                            <Button size="sm" variant="outline" className="rounded-xl w-full">
+                                                Edit
+                                            </Button>
+                                        </Link>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button size="sm" variant="outline" className="rounded-xl flex-1" disabled={actioningProductId === product.id}>
+                                                    Actions
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem onClick={() => handleStatusUpdate(product.id, 'sold')}>
+                                                    Mark as Sold
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleStatusUpdate(product.id, 'deleted')} className="text-destructive">
+                                                    Delete
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-bold truncate">{product.title}</h3>
-                                    <p className="text-xs text-muted-foreground line-clamp-1">{product.category} • {product.condition}</p>
-                                    <p className="text-sm font-black text-primary mt-1">{product.price.toLocaleString()} FCFA</p>
-                                </div>
-                                <div className={cn(
-                                    "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
-                                    product.status === 'approved' ? "bg-green-100 text-green-600" :
-                                        product.status === 'pending' ? "bg-blue-100 text-blue-600" :
-                                            "bg-red-100 text-red-600"
-                                )}>
-                                    {product.status || 'pending'}
-                                </div>
-                            </div>
-                        ))}
+                            )
+                        })}
                     </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
@@ -129,8 +210,6 @@ export default function MyProductsPage() {
                     </div>
                 )}
             </main>
-
-            <FloatingNavbar />
         </div>
     )
 }

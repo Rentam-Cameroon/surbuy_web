@@ -72,5 +72,55 @@ export const productService = {
         const resData = await response.json()
         if (!response.ok) throw new Error(resData.error || 'Failed to list categories')
         return resData.categories
+    },
+
+    async editProduct(productId: string, data: ProductData) {
+        const token = getTokenFromCookie()
+        const response = await fetch('/api/sell/product', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                step: 'edit_product',
+                token,
+                product_id: productId,
+                ...data
+            })
+        })
+        const resData = await response.json()
+        if (!response.ok) throw new Error(resData.error || 'Failed to edit product')
+        return resData
+    },
+
+    async updateProductStatus(productId: string, status: 'sold' | 'deleted') {
+        const token = getTokenFromCookie()
+        const response = await fetch('/api/sell/product', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                step: 'update_product_status',
+                token,
+                product_id: productId,
+                status
+            })
+        })
+        const resData = await response.json()
+        if (!response.ok) throw new Error(resData.error || 'Failed to update product status')
+        return resData
+    },
+
+    async getProduct(productId: string) {
+        const token = getTokenFromCookie()
+        const response = await fetch('/api/sell/product', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                step: 'get_product',
+                token,
+                product_id: productId
+            })
+        })
+        const resData = await response.json()
+        if (!response.ok) throw new Error(resData.error || 'Failed to get product')
+        return resData.product
     }
 }

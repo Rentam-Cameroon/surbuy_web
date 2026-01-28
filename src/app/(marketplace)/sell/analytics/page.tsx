@@ -55,8 +55,6 @@ export default function AnalyticsPage() {
                     </div>
                 </div>
             </main>
-
-            <FloatingNavbar />
         </div>
     )
 }

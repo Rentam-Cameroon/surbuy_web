@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowLeft, Camera, X, CheckCircle2, Hash, FileCheck, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,14 +31,20 @@ interface Category {
 
 export default function AddProductPage() {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const editProductId = searchParams.get('edit')
+    const isEditMode = !!editProductId
+
     const [images, setImages] = useState<File[]>([])
     const [imagePreviews, setImagePreviews] = useState<string[]>([])
+    const [existingImages, setExistingImages] = useState<Array<{ image_url: string, display_order: number }>>([])
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isSuccess, setIsSuccess] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [categories, setCategories] = useState<Category[]>([])
     const [isLoadingCategories, setIsLoadingCategories] = useState(true)
     const [availableNeighborhoods, setAvailableNeighborhoods] = useState<string[]>([])
+    const [isLoadingProduct, setIsLoadingProduct] = useState(isEditMode)
 
     const [formData, setFormData] = useState({
         title: "",
@@ -67,6 +73,42 @@ export default function AddProductPage() {
     }, [])
 
     useEffect(() => {
+        const fetchProduct = async () => {
+            if (!editProductId) return
+
+            try {
+                setIsLoadingProduct(true)
+                const product = await productService.getProduct(editProductId)
+
+                // Pre-populate form
+                setFormData({
+                    title: product.title || "",
+                    description: product.description || "",
+                    category_id: product.category_id || "",
+                    condition: product.condition || "",
+                    price: product.price?.toString() || "",
+                    locationCity: product.location_city || "",
+                    neighborhood: product.neighborhood || "",
+                    serialNumber: product.serial_number || "",
+                    hasReceipt: product.has_receipt || false
+                })
+
+                // Set existing images
+                if (product.images && product.images.length > 0) {
+                    setExistingImages(product.images)
+                }
+            } catch (err) {
+                console.error("Failed to fetch product:", err)
+                setError("Failed to load product data")
+            } finally {
+                setIsLoadingProduct(false)
+            }
+        }
+
+        fetchProduct()
+    }, [editProductId])
+
+    useEffect(() => {
         if (formData.locationCity) {
             const neighborhoods = getNeighborhoodsForCity(formData.locationCity)
             setAvailableNeighborhoods(neighborhoods)
@@ -92,6 +134,10 @@ export default function AddProductPage() {
         const newPreviews = imagePreviews.filter((_, i) => i !== index)
         setImages(newImages)
         setImagePreviews(newPreviews)
+    }
+
+    const removeExistingImage = (index: number) => {
+        setExistingImages(existingImages.filter((_, i) => i !== index))
     }
 
     const fileToBase64 = (file: File): Promise<string> => {
@@ -123,7 +169,7 @@ export default function AddProductPage() {
                 })
             )
 
-            await productService.createProduct({
+            const productData = {
                 title: formData.title,
                 description: formData.description,
                 category_id: formData.category_id,
@@ -134,14 +180,21 @@ export default function AddProductPage() {
                 serial_number: formData.serialNumber,
                 has_receipt: formData.hasReceipt,
                 images: imageData.length > 0 ? imageData : undefined
-            })
+            }
+
+            if (isEditMode && editProductId) {
+                await productService.editProduct(editProductId, productData)
+            } else {
+                await productService.createProduct(productData)
+            }
+
             setIsSuccess(true)
             setTimeout(() => {
-                router.push("/sell")
-            }, 3000)
+                router.push("/sell/my-products")
+            }, 2000)
         } catch (err: any) {
             console.error("Submission failed:", err)
-            setError(err.message || "Failed to publish listing")
+            setError(err.message || `Failed to ${isEditMode ? 'update' : 'publish'} listing`)
         } finally {
             setIsSubmitting(false)
         }
@@ -153,8 +206,17 @@ export default function AddProductPage() {
                 <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 animate-bounce">
                     <CheckCircle2 className="h-10 w-10" />
                 </div>
-                <h1 className="text-2xl font-bold">Listing Published!</h1>
-                <p className="text-muted-foreground">Your item is now live and pending review.</p>
+                <h1 className="text-2xl font-bold">{isEditMode ? 'Product Updated!' : 'Listing Published!'}</h1>
+                <p className="text-muted-foreground">{isEditMode ? 'Your changes have been saved.' : 'Your item is now live and pending review.'}</p>
+            </div>
+        )
+    }
+
+    if (isLoadingProduct) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center p-6">
+                <CupertinoActivityIndicator size={40} />
+                <p className="mt-4 text-sm text-muted-foreground">Loading product...</p>
             </div>
         )
     }
@@ -171,8 +233,8 @@ export default function AddProductPage() {
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">List an Item</h1>
-                    <p className="text-muted-foreground text-sm">Post a product for sale</p>
+                    <h1 className="text-2xl font-bold tracking-tight">{isEditMode ? 'Edit Product' : 'List an Item'}</h1>
+                    <p className="text-muted-foreground text-sm">{isEditMode ? 'Update your product details' : 'Post a product for sale'}</p>
                 </div>
             </header>
 
@@ -198,8 +260,22 @@ export default function AddProductPage() {
                         Note: Image upload is currently in beta. Your listing will use a default placeholder if no images are attached.
                     </p>
                     <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                        {/* Existing images (in edit mode) */}
+                        {existingImages.map((img, idx) => (
+                            <div key={`existing-${idx}`} className="relative aspect-square rounded-2xl overflow-hidden border border-border/40 group">
+                                <img src={img.image_url} alt={`Existing ${idx}`} className="w-full h-full object-cover" />
+                                <button
+                                    type="button"
+                                    onClick={() => removeExistingImage(idx)}
+                                    className="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            </div>
+                        ))}
+                        {/* New images */}
                         {imagePreviews.map((src, idx) => (
-                            <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border border-border/40 group">
+                            <div key={`new-${idx}`} className="relative aspect-square rounded-2xl overflow-hidden border border-border/40 group">
                                 <img src={src} alt={`Upload ${idx}`} className="w-full h-full object-cover" />
                                 <button
                                     type="button"
@@ -210,7 +286,7 @@ export default function AddProductPage() {
                                 </button>
                             </div>
                         ))}
-                        {images.length < 5 && (
+                        {(existingImages.length + images.length) < 5 && (
                             <label className="aspect-square rounded-2xl border-2 border-dashed border-muted-foreground/20 flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-muted/30 transition-colors">
                                 <Camera className="w-6 h-6 text-muted-foreground/60" />
                                 <span className="text-[10px] font-bold text-muted-foreground/60 uppercase">Add</span>
@@ -398,14 +474,12 @@ export default function AddProductPage() {
                         {isSubmitting ? (
                             <>
                                 <CupertinoActivityIndicator size={20} color="white" />
-                                Publishing...
+                                {isEditMode ? 'Updating...' : 'Publishing...'}
                             </>
-                        ) : "Publish Listing"}
+                        ) : (isEditMode ? 'Update Product' : 'Publish Listing')}
                     </Button>
                 </div>
             </form>
-
-            <FloatingNavbar />
         </div>
     )
 }
