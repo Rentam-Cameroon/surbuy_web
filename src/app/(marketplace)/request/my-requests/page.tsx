@@ -198,7 +198,7 @@ export default function MyRequestsPage() {
                                                                     <User className="w-3 h-3 text-primary" />
                                                                 </div>
                                                                 <span className="font-bold text-xs">
-                                                                    {res.response_type === "have_product" ? "Seller" : "Referral"}
+                                                                    {res.response_type === "i_have_this" ? "Seller" : "Referral"}
                                                                 </span>
                                                             </div>
                                                             <span className="text-[10px] text-muted-foreground">
@@ -207,8 +207,17 @@ export default function MyRequestsPage() {
                                                         </div>
                                                         <p className="text-xs text-muted-foreground mb-2 italic">"{res.message}"</p>
                                                         <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                                            {res.product_id ? (
-                                                                <span>Product ID: {res.product_id}</span>
+                                                            {res.product?.id ? (
+                                                                <button
+                                                                    type="button"
+                                                                    className="text-left hover:text-primary transition-colors"
+                                                                    onClick={() => router.push(`/marketplace/product/${res.product.id}`)}
+                                                                >
+                                                                    <div className="font-semibold">{res.product.title}</div>
+                                                                    <div className="text-[10px] text-muted-foreground">
+                                                                        {Number(res.product.price ?? 0).toLocaleString()} FCFA
+                                                                    </div>
+                                                                </button>
                                                             ) : res.referral_contact ? (
                                                                 <span className="flex items-center gap-1">
                                                                     <Phone className="w-3 h-3" />

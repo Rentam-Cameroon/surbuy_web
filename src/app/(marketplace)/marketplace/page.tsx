@@ -7,21 +7,25 @@ import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import ProductSection from "@/components/marketplace/ProductSection"
 import { MOCK_LISTINGS } from "@/lib/mockData"
 import Link from "next/link"
-import { useKYCStore } from "@/store/useKYCStore"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { authService } from "@/lib/authService"
 
 export default function Dashboard() {
-    const { documents, isFetched } = useKYCStore()
     const router = useRouter()
+    const [isCheckingKyc, setIsCheckingKyc] = useState(false)
 
-    const handleSellClick = () => {
-        const idSubmitted = documents.id_front.status === 'approved' || documents.id_front.status === 'pending'
-        const selfieSubmitted = documents.selfie.status === 'approved' || documents.selfie.status === 'pending'
-
-        if (idSubmitted && selfieSubmitted) {
-            router.push('/sell')
-        } else {
-            router.push('/kyc')
+    const handleSellClick = async () => {
+        if (isCheckingKyc) return
+        setIsCheckingKyc(true)
+        try {
+            const data = await authService.getUserKYCStatus()
+            const isApproved = data.kyc_status === "approved" && (data.kyc_tier ?? 0) >= 1
+            router.push(isApproved ? "/sell" : "/kyc")
+        } catch (err) {
+            router.push("/kyc")
+        } finally {
+            setIsCheckingKyc(false)
         }
     }
 

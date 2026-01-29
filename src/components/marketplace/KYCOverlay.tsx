@@ -1,6 +1,5 @@
 "use client"
 
-import { useKYCStore } from "@/store/useKYCStore"
 import { ShieldCheck, Clock, AlertTriangle, ArrowRight, RefreshCw } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -9,15 +8,19 @@ import { authService } from "@/lib/authService"
 import { Modal } from "@/components/ui/modal"
 
 export default function KYCOverlay() {
-    const { documents, setKYCData, isFetched } = useKYCStore()
     const [isVisible, setIsVisible] = useState(false)
     const [isRefreshing, setIsRefreshing] = useState(false)
+    const [isFetched, setIsFetched] = useState(false)
+    const [kycStatus, setKycStatus] = useState<string | null>(null)
+    const [kycTier, setKycTier] = useState<number>(0)
 
     const checkStatus = async () => {
         try {
             setIsRefreshing(true)
-            const data = await authService.getKYCStatus()
-            setKYCData(data)
+            const data = await authService.getUserKYCStatus()
+            setKycStatus(data.kyc_status ?? null)
+            setKycTier(data.kyc_tier ?? 0)
+            setIsFetched(true)
         } catch (err) {
             console.error("Failed to check KYC status:", err)
         } finally {
@@ -34,25 +37,16 @@ export default function KYCOverlay() {
     useEffect(() => {
         if (!isFetched) return
 
-        const idApproved = documents.id_front.status === 'approved'
-        const selfieApproved = documents.selfie.status === 'approved'
-
-        // Show overlay if either ID or Selfie is NOT approved
-        setIsVisible(!(idApproved && selfieApproved))
-    }, [documents, isFetched])
+        const isApproved = kycStatus === "approved" && (kycTier ?? 0) >= 1
+        setIsVisible(!isApproved)
+    }, [isFetched, kycStatus, kycTier])
 
     if (!isVisible) return null
 
     const getOveralStatus = () => {
-        const statuses = [
-            documents.id_front.status,
-            documents.id_back.status,
-            documents.selfie.status
-        ]
-
-        if (statuses.some(s => s === 'rejected')) return 'rejected'
-        if (statuses.some(s => s === 'pending')) return 'pending'
-        return 'not_submitted'
+        if (kycStatus === "rejected") return "rejected"
+        if (kycStatus === "pending") return "pending"
+        return "not_submitted"
     }
 
     const status = getOveralStatus()

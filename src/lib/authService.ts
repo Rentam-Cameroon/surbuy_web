@@ -64,5 +64,15 @@ export const authService = {
         })
         if (!response.ok) throw new Error('Failed to fetch KYC status')
         return response.json()
+    },
+
+    async getUserKYCStatus() {
+        const response = await fetch('/api/kyc/user-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        })
+        if (!response.ok) throw new Error('Failed to fetch user KYC status')
+        return response.json()
     }
 }

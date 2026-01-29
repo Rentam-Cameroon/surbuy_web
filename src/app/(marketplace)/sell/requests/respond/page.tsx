@@ -17,7 +17,7 @@ export default function RespondRequestPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const requestId = searchParams.get("requestId") || ""
-    const responseType = searchParams.get("responseType") as "have_product" | "know_someone" | null
+    const responseType = searchParams.get("responseType") as "i_have_this" | "i_know_someone" | null
 
     const [message, setMessage] = useState("")
     const [referralContact, setReferralContact] = useState("")
@@ -28,7 +28,7 @@ export default function RespondRequestPage() {
     const [error, setError] = useState("")
 
     useEffect(() => {
-        if (responseType !== "have_product") return
+        if (responseType !== "i_have_this") return
 
         const loadProducts = async () => {
             try {
@@ -75,12 +75,12 @@ export default function RespondRequestPage() {
             return
         }
 
-        if (responseType === "have_product" && !selectedProductId) {
+        if (responseType === "i_have_this" && !selectedProductId) {
             setError("Please select a product")
             return
         }
 
-        if (responseType === "know_someone" && !isCameroonPhone(referralContact)) {
+        if (responseType === "i_know_someone" && !isCameroonPhone(referralContact)) {
             setError("Phone number must be 9 digits and start with 6")
             return
         }
@@ -90,8 +90,8 @@ export default function RespondRequestPage() {
             await requestService.respondToRequest({
                 request_id: requestId,
                 response_type: responseType,
-                product_id: responseType === "have_product" ? selectedProductId : undefined,
-                referral_contact: responseType === "know_someone" ? referralContact.replace(/\s+/g, "") : undefined,
+                product_id: responseType === "i_have_this" ? selectedProductId : undefined,
+                referral_contact: responseType === "i_know_someone" ? referralContact.replace(/\s+/g, "") : undefined,
                 message
             })
             router.push("/sell/requests")
@@ -116,7 +116,7 @@ export default function RespondRequestPage() {
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Respond to Request</h1>
                     <p className="text-muted-foreground text-sm">
-                        {responseType === "have_product"
+                        {responseType === "i_have_this"
                             ? "Let the buyer know you have the item"
                             : "Share a trusted contact who can help"}
                     </p>
@@ -133,7 +133,7 @@ export default function RespondRequestPage() {
                 <div className="text-sm text-muted-foreground">Missing request details.</div>
             ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {responseType === "have_product" && (
+                    {responseType === "i_have_this" && (
                         <div className="space-y-2">
                             <Label>Select your product</Label>
                             {isLoadingProducts ? (
@@ -160,7 +160,7 @@ export default function RespondRequestPage() {
                         </div>
                     )}
 
-                    {responseType === "know_someone" && (
+                    {responseType === "i_know_someone" && (
                         <div className="space-y-2">
                             <Label htmlFor="referral_contact">Referral phone number</Label>
                             <Input
@@ -194,7 +194,7 @@ export default function RespondRequestPage() {
                         className="w-full h-14 text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all"
                         disabled={
                             isSubmitting ||
-                            (responseType === "have_product" && (isLoadingProducts || products.length === 0))
+                            (responseType === "i_have_this" && (isLoadingProducts || products.length === 0))
                         }
                     >
                         {isSubmitting ? (

@@ -11,7 +11,7 @@ export interface RequestData {
 
 export interface ResponseData {
     request_id: string
-    response_type: 'have_product' | 'know_someone'
+    response_type: 'i_have_this' | 'i_know_someone'
     product_id?: string
     referral_contact?: string
     message: string

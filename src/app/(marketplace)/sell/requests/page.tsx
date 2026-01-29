@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import RequestCard from "@/components/request/RequestCard"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import { useRouter } from "next/navigation"
@@ -11,15 +11,17 @@ import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-i
 import { useRequestCache } from "@/contexts/RequestCacheContext"
 import { useAuthStore } from "@/store/useAuthStore"
 import { VerificationDialog } from "@/components/dialogs/VerificationDialog"
+import { authService } from "@/lib/authService"
 
 export default function SellerRequestsPage() {
     const router = useRouter()
     const { getRequests, setRequests } = useRequestCache()
-    const { user, isAuthenticated, isLoading } = useAuthStore()
+    const { isAuthenticated, isLoading } = useAuthStore()
     const [requests, setRequestsState] = useState<any[]>([])
     const [isLoadingRequests, setIsLoadingRequests] = useState(true)
     const [error, setError] = useState("")
     const [dialogType, setDialogType] = useState<"auth" | "kyc" | null>(null)
+    const [isCheckingKyc, setIsCheckingKyc] = useState(false)
 
     useEffect(() => {
         const loadRequests = async () => {
@@ -45,22 +47,26 @@ export default function SellerRequestsPage() {
         loadRequests()
     }, [getRequests, setRequests])
 
-    const canRespond = useMemo(() => {
-        if (!isAuthenticated || !user) return false
-        return user.kyc_status === "approved" && (user.kyc_tier ?? 0) >= 1
-    }, [isAuthenticated, user])
-
-    const handleRespond = (requestId: string, responseType: "have_product" | "know_someone") => {
-        if (isLoading) return
+    const handleRespond = async (requestId: string, responseType: "i_have_this" | "i_know_someone") => {
+        if (isLoading || isCheckingKyc) return
         if (!isAuthenticated) {
             setDialogType("auth")
             return
         }
-        if (!canRespond) {
+        setIsCheckingKyc(true)
+        try {
+            const data = await authService.getUserKYCStatus()
+            const isApproved = data.kyc_status === "approved" && (data.kyc_tier ?? 0) >= 1
+            if (!isApproved) {
+                setDialogType("kyc")
+                return
+            }
+            router.push(`/sell/requests/respond?requestId=${requestId}&responseType=${responseType}`)
+        } catch (err) {
             setDialogType("kyc")
-            return
+        } finally {
+            setIsCheckingKyc(false)
         }
-        router.push(`/sell/requests/respond?requestId=${requestId}&responseType=${responseType}`)
     }
 
     return (

@@ -16,7 +16,7 @@ interface RequestCardProps {
         category: string
         created_at: string
     }
-    onRespond: (requestId: string, responseType: 'have_product' | 'know_someone') => void
+    onRespond: (requestId: string, responseType: 'i_have_this' | 'i_know_someone') => void
 }
 
 export default function RequestCard({ request, onRespond }: RequestCardProps) {
@@ -73,7 +73,7 @@ export default function RequestCard({ request, onRespond }: RequestCardProps) {
                 <Button
                     className="w-[65%] h-10 text-xs font-bold shadow-sm hover:shadow-md transition-all rounded-xl"
                     size="sm"
-                    onClick={() => onRespond(request.id, 'have_product')}
+                    onClick={() => onRespond(request.id, 'i_have_this')}
                 >
                     I have it
                 </Button>
@@ -81,7 +81,7 @@ export default function RequestCard({ request, onRespond }: RequestCardProps) {
                     variant="outline"
                     size="sm"
                     className="w-[35%] h-10 text-[10px] font-medium rounded-xl leading-tight px-1 text-center"
-                    onClick={() => onRespond(request.id, 'know_someone')}
+                    onClick={() => onRespond(request.id, 'i_know_someone')}
                 >
                     I know someone
                 </Button>
