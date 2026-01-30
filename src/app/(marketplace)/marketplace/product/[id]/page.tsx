@@ -1,51 +1,196 @@
 "use client"
 
+import { useEffect, useMemo, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import ProductGallery from "@/components/marketplace/product-detail/ProductGallery"
 import ProductInfo from "@/components/marketplace/product-detail/ProductInfo"
 import SimilarProducts from "@/components/marketplace/product-detail/SimilarProducts"
 import { Button } from "@/components/ui/button"
-
-// Mock Data for the product
-const MOCK_PRODUCT = {
-    id: "1",
-    title: "Gaming Laptop Asus ROG Strix",
-    price: 850000,
-    description: `Selling my used Asus ROG Strix gaming laptop. It's in excellent condition, barely used for 6 months.
-
-Specs:
-- Intel Core i7 12th Gen
-- RTX 3060 6GB
-- 16GB RAM
-- 1TB SSD
-- 144Hz Screen
-
-Reason for selling: Upgrading to a desktop. 
-Comes with original charger and box. Price is slightly negotiable for serious buyers only.`,
-    location: "Douala, Bonapriso",
-    postedDate: "2 days ago",
-    category: "Computers & Laptops",
-    condition: "Like New",
-    images: [
-        "https://images.unsplash.com/photo-1603302576837-37561b2e2302?q=80&w=2000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?q=80&w=2000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1611078489935-0cb964de46d6?q=80&w=2000&auto=format&fit=crop"
-    ],
-    seller: {
-        name: "Jean-Pierre",
-        avatar: "JP", // Initials
-        joinedDate: "Mar 2023",
-        rating: 4.8
-    }
-}
+import { marketplaceService } from "@/lib/marketplaceService"
+import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
+import { useMarketplaceCache } from "@/contexts/MarketplaceCacheContext"
+import { chatService } from "@/lib/chatService"
+import { useAuthStore } from "@/store/useAuthStore"
+import { getUserIdFromCookie } from "@/lib/auth-utils"
 
 export default function ProductDetailPage() {
     const params = useParams()
     const router = useRouter()
+    const productId = params?.id as string
+    const [product, setProduct] = useState<any | null>(null)
+    const [similarItems, setSimilarItems] = useState<any[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [conversationId, setConversationId] = useState<string | null>(null)
+    const [isCheckingConversation, setIsCheckingConversation] = useState(true)
+    const { getCache, setCache } = useMarketplaceCache()
+    const { user } = useAuthStore()
+    const userId = user?.id || getUserIdFromCookie()
 
-    // In a real app, use params.id to fetch data
-    const product = MOCK_PRODUCT
+    const formatDate = (dateString?: string) => {
+        if (!dateString) return ""
+        const date = new Date(dateString)
+        return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    }
+
+    const mapProductToListing = (data: any) => {
+        const images = Array.isArray(data.product_images) ? data.product_images : []
+        const primaryImage = images
+            .slice()
+            .sort((a: any, b: any) => (a.display_order ?? 0) - (b.display_order ?? 0))[0]?.image_url
+        const location = [data.location_city, data.neighborhood].filter(Boolean).join(", ")
+        const category = data.categories?.name || data.category || data.category_name || data.category_id
+        return {
+            id: data.id,
+            title: data.title,
+            price: data.price,
+            location,
+            image: primaryImage,
+            category,
+        }
+    }
+
+    const getInitials = (name?: string) => {
+        if (!name) return "S"
+        return name
+            .split(" ")
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase()
+    }
+
+    const getSellerBadge = (status?: string, tier?: number) => {
+        if (status === "approved" && tier === 1) {
+            return {
+                label: "Verified",
+                className: "text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600"
+            }
+        }
+        if (status === "approved" && tier === 2) {
+            return {
+                label: "Trusted",
+                className: "text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 text-green-600"
+            }
+        }
+        return {
+            label: "Unverified",
+            className: "text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
+        }
+    }
+
+    useEffect(() => {
+        const loadProduct = async () => {
+            try {
+                setIsLoading(true)
+                const productCacheKey = `product:${productId}`
+                const similarCacheKey = `product:${productId}:similar`
+
+                const cachedProduct = getCache(productCacheKey)
+                const cachedSimilar = getCache(similarCacheKey)
+
+                if (cachedProduct) {
+                    setProduct(cachedProduct)
+                }
+                if (cachedSimilar) {
+                    setSimilarItems(cachedSimilar)
+                }
+
+                if (!cachedProduct) {
+                    const data = await marketplaceService.getProduct(productId)
+                    setProduct(data)
+                    setCache(productCacheKey, data)
+                }
+
+                if (!cachedSimilar) {
+                    const similar = await marketplaceService.getSimilarProducts(productId, userId ?? null)
+                    const mapped = (similar || []).map((p: any) => mapProductToListing(p))
+                    setSimilarItems(mapped)
+                    setCache(similarCacheKey, mapped)
+                }
+            } catch (err) {
+                console.error("Failed to load product:", err)
+                setProduct(null)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        if (productId) {
+            loadProduct()
+        }
+    }, [productId])
+
+    useEffect(() => {
+        const checkConversation = async () => {
+            try {
+                setIsCheckingConversation(true)
+                const data = await chatService.checkProductConversation(productId)
+                if (data?.exists && data.conversation?.id) {
+                    setConversationId(data.conversation.id)
+                } else {
+                    setConversationId(null)
+                }
+            } catch (err) {
+                console.error("Failed to check conversation:", err)
+            } finally {
+                setIsCheckingConversation(false)
+            }
+        }
+
+        if (productId) {
+            checkConversation()
+        }
+    }, [productId])
+
+    const handleOpenSeller = () => {
+        if (!product?.seller?.id) return
+        router.push(`/seller/${product.seller.id}`)
+    }
+
+    const images = useMemo(() => {
+        if (!product?.product_images?.length) return ["/icon.svg"]
+        return product.product_images
+            .slice()
+            .sort((a: any, b: any) => (a.display_order ?? 0) - (b.display_order ?? 0))
+            .map((img: any) => img.image_url)
+            .filter(Boolean)
+    }, [product])
+
+    if (!product && isLoading) {
+        return (
+            <div className="container mx-auto px-4 py-6 max-w-7xl">
+                <Button
+                    variant="ghost"
+                    className="gap-2 pl-0 hover:pl-2 transition-all text-muted-foreground"
+                    onClick={() => router.back()}
+                >
+                    <ArrowLeft className="w-5 h-5" />
+                    Back
+                </Button>
+                <div className="flex items-center justify-center py-16">
+                    <CupertinoActivityIndicator size={32} />
+                </div>
+            </div>
+        )
+    }
+
+    if (!product && !isLoading) {
+        return (
+            <div className="container mx-auto px-4 py-6 max-w-7xl">
+                <Button
+                    variant="ghost"
+                    className="gap-2 pl-0 hover:pl-2 transition-all text-muted-foreground"
+                    onClick={() => router.back()}
+                >
+                    <ArrowLeft className="w-5 h-5" />
+                    Back
+                </Button>
+                <div className="py-20 text-center text-muted-foreground">Product not found.</div>
+            </div>
+        )
+    }
 
     return (
         <div className="container mx-auto px-4 py-6 max-w-7xl animate-in fade-in duration-500">
@@ -64,30 +209,52 @@ export default function ProductDetailPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
                 {/* Left Column: Gallery */}
                 <div className="lg:col-span-7 xl:col-span-8">
-                    <ProductGallery images={product.images} title={product.title} />
+                    <ProductGallery images={images} title={product?.title || "Product"} />
                 </div>
 
                 {/* Right Column: Info & Actions */}
                 <div className="lg:col-span-5 xl:col-span-4">
                     <div className="sticky top-6">
-                        <ProductInfo
-                            title={product.title}
-                            price={product.price}
-                            description={product.description}
-                            location={product.location}
-                            postedDate={product.postedDate}
-                            category={product.category}
-                            condition={product.condition}
-                            seller={product.seller}
-                        />
+                        {product && (
+                            <>
+                                <ProductInfo
+                                    title={product.title}
+                                    price={product.price}
+                                    description={product.description || ""}
+                                    location={[product.location_city, product.neighborhood].filter(Boolean).join(", ")}
+                                    postedDate={formatDate(product.created_at)}
+                                    category={product.categories?.name || product.category || product.category_name || product.category_id}
+                                    condition={product.condition}
+                                    productId={product.id}
+                                    conversationId={conversationId}
+                                    isConversationLoading={isCheckingConversation}
+                                    seller={{
+                                        name: product.seller?.full_name || "Seller",
+                                        avatar: getInitials(product.seller?.full_name),
+                                        avatarUrl: product.seller?.profile_image_url,
+                                        joinedDate: "Recently",
+                                        rating: 0,
+                                        badgeLabel: getSellerBadge(product.seller?.kyc_status, product.seller?.kyc_tier).label,
+                                        badgeClassName: getSellerBadge(product.seller?.kyc_status, product.seller?.kyc_tier).className
+                                    }}
+                                    onSellerClick={handleOpenSeller}
+                                />
+                                {isCheckingConversation && (
+                                    <div className="mt-4 flex items-center justify-center">
+                                        <CupertinoActivityIndicator size={22} />
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
 
             {/* Similar Items Section */}
             <div className="mt-16 pt-8 border-t border-border/50">
-                <SimilarProducts />
+                <SimilarProducts items={similarItems} />
             </div>
+
         </div>
     )
 }

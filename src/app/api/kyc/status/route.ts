@@ -11,10 +11,13 @@ export async function GET() {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        // Decode user_id from token payload (first segment)
+        // Decode user_id from token payload (second segment)
         let userId = ''
         try {
-            const payloadB64 = token.split('.')[0]
+            const payloadB64 = token.split('.')[1]
+            if (!payloadB64) {
+                return NextResponse.json({ error: 'Invalid token format' }, { status: 400 })
+            }
             const payload = JSON.parse(Buffer.from(payloadB64, 'base64').toString())
             userId = payload.sub
         } catch (e) {

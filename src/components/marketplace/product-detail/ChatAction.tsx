@@ -1,64 +1,102 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button" // Assuming this exists
 import { MessageCircle, ShieldAlert, Send, X } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { chatService } from "@/lib/chatService"
+import { useRouter } from "next/navigation"
 
 interface ChatActionProps {
     sellerName: string
+    productId: string
+    existingConversationId?: string | null
+    disabled?: boolean
 }
 
-export default function ChatAction({ sellerName }: ChatActionProps) {
+export default function ChatAction({ sellerName, productId, existingConversationId, disabled = false }: ChatActionProps) {
+    const router = useRouter()
     const [status, setStatus] = useState<"initial" | "safety_check" | "ready">("initial")
-    const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
+    const [messageText, setMessageText] = useState("")
+    const [conversationId, setConversationId] = useState<string | null>(null)
+    const [isSending, setIsSending] = useState(false)
+    const [existingConversation, setExistingConversation] = useState(false)
 
-    const presetMessages = [
-        "Is this still available?",
-        "Is the price negotiable?",
-        "Can I see more photos?",
-        "Where are you located?"
+    const suggestedMessages = [
+        "Is this still available, how much?",
+        "Is the price negotiable?"
     ]
 
-    const handleInitialClick = (message?: string) => {
-        if (message) setSelectedPreset(message)
-        setStatus("safety_check")
-    }
+    useEffect(() => {
+        if (existingConversationId) {
+            setConversationId(existingConversationId)
+            setStatus("ready")
+            setExistingConversation(true)
+        }
+    }, [existingConversationId])
 
     const handleCancel = () => {
         setStatus("initial")
-        setSelectedPreset(null)
     }
 
-    const handleConfirm = () => {
-        // Here you would typically trigger the API call to send the first message
-        console.log(`Sending message: ${selectedPreset || "Hi, is this available?"}`)
-        setStatus("ready")
+    const handleConfirm = async () => {
+        if (!messageText.trim()) return
+        try {
+            setIsSending(true)
+            let convoId = conversationId
+            if (!convoId) {
+                const convo = await chatService.startConversation({ product_id: productId })
+                convoId = convo.id
+                setConversationId(convo.id)
+            }
+            await chatService.sendMessage({
+                conversation_id: convoId!,
+                message_text: messageText.trim()
+            })
+            setStatus("ready")
+            setExistingConversation(false)
+        } catch (err) {
+            console.error("Failed to send message:", err)
+        } finally {
+            setIsSending(false)
+        }
     }
 
     const goToConversation = () => {
-        // Router push to conversation
-        console.log("Navigating to conversation...")
+        if (!conversationId) return
+        router.push(`/messages/${conversationId}`)
     }
 
     return (
         <div className="space-y-4">
             {status === "initial" && (
                 <div className="space-y-4">
-                    <div className="flex flex-wrap gap-2">
-                        {presetMessages.map((msg) => (
-                            <button
-                                key={msg}
-                                onClick={() => handleInitialClick(msg)}
-                                className="text-sm px-3 py-1.5 rounded-full bg-secondary/50 hover:bg-secondary transition-colors text-secondary-foreground border border-border"
-                            >
-                                {msg}
-                            </button>
-                        ))}
+                    <div className="space-y-3">
+                        <Input
+                            placeholder="Type a message..."
+                            value={messageText}
+                            onChange={(e) => setMessageText(e.target.value)}
+                            className="rounded-xl h-11 bg-muted/40 border-border/40"
+                            disabled={disabled}
+                        />
+                        <div className="flex flex-wrap gap-2">
+                            {suggestedMessages.map((msg) => (
+                                <button
+                                    key={msg}
+                                    onClick={() => !disabled && setMessageText(msg)}
+                                    className="text-sm px-3 py-1.5 rounded-full bg-secondary/50 hover:bg-secondary transition-colors text-secondary-foreground border border-border"
+                                    disabled={disabled}
+                                >
+                                    {msg}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                     <Button
-                        onClick={() => handleInitialClick()}
+                        onClick={() => setStatus("safety_check")}
                         className="w-full h-11 text-base gap-2 shadow-lg hover:shadow-xl transition-all"
+                        disabled={!messageText.trim() || isSending || disabled}
                     >
                         <Send className="w-4 h-4" />
                         Send Seller a Message
@@ -70,7 +108,7 @@ export default function ChatAction({ sellerName }: ChatActionProps) {
                 <div className="space-y-2">
                     <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-600 text-sm flex items-center gap-2">
                         <MessageCircle className="w-4 h-4" />
-                        Message sent to {sellerName}!
+                        {existingConversation ? `Continue conversation with ${sellerName}!` : `Message sent to ${sellerName}!`}
                     </div>
                     <Button
                         onClick={goToConversation}
@@ -135,6 +173,7 @@ export default function ChatAction({ sellerName }: ChatActionProps) {
                                     <Button
                                         onClick={handleConfirm}
                                         className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                                        disabled={isSending}
                                     >
                                         Read & Understood
                                     </Button>

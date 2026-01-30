@@ -3,24 +3,27 @@ import Link from "next/link"
 
 import { Button } from "@/components/ui/button" // Assuming you have this
 import { Heart, MapPin } from "lucide-react"
-import Image from "next/image"
-
 interface ListingCardProps {
     title: string
-    price: number
-    location: string
-    image: string
-    category: string
+    price: number | string
+    location?: string
+    image?: string
+    category?: string
     isNew?: boolean
 }
 
 export default function ListingCard({ id = "1", title, price, location, image, category, isNew }: ListingCardProps & { id?: string }) {
+    const resolvedImage = image || "/icon.svg"
+    const resolvedCategory = category || ""
+    const resolvedLocation = location || ""
+    const resolvedPrice = typeof price === "string" ? Number(price) : price
+
     return (
         <Link href={`/marketplace/product/${id}`}>
             <Card className="overflow-hidden border-border/40 hover:shadow-lg transition-all group cursor-pointer bg-card h-full">
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
                     <img
-                        src={image}
+                        src={resolvedImage}
                         alt={title}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
@@ -44,22 +47,26 @@ export default function ListingCard({ id = "1", title, price, location, image, c
                     )}
                 </div>
                 <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                        <div className="text-sm text-muted-foreground font-medium uppercase tracking-wider text-[10px]">
-                            {category}
+                    {resolvedCategory && (
+                        <div className="flex justify-between items-start mb-2">
+                            <div className="text-sm text-muted-foreground font-medium uppercase tracking-wider text-[10px]">
+                                {resolvedCategory}
+                            </div>
                         </div>
-                    </div>
+                    )}
                     <h3 className="font-semibold text-lg line-clamp-1 group-hover:text-primary transition-colors">
                         {title}
                     </h3>
                     <div className="font-bold text-xl mt-1 text-primary">
-                        {price.toLocaleString('fr-CM')} XAF
+                        {Number.isFinite(resolvedPrice) ? resolvedPrice.toLocaleString('fr-CM') : 0} XAF
                     </div>
                 </CardContent>
-                <CardFooter className="p-4 pt-0 text-sm text-muted-foreground flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    <span className="truncate">{location}</span>
-                </CardFooter>
+                {resolvedLocation && (
+                    <CardFooter className="p-4 pt-0 text-sm text-muted-foreground flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        <span className="truncate">{resolvedLocation}</span>
+                    </CardFooter>
+                )}
             </Card>
         </Link>
     )

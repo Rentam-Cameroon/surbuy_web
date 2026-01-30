@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ProductCacheProvider } from "@/contexts/ProductCacheContext";
 import { RequestCacheProvider } from "@/contexts/RequestCacheContext";
+import { MarketplaceCacheProvider } from "@/contexts/MarketplaceCacheContext";
 
 export default function RootLayout({
   children,
@@ -33,9 +34,11 @@ export default function RootLayout({
       >
         <AuthProvider>
           <ProductCacheProvider>
-            <RequestCacheProvider>
-              {children}
-            </RequestCacheProvider>
+            <MarketplaceCacheProvider>
+              <RequestCacheProvider>
+                {children}
+              </RequestCacheProvider>
+            </MarketplaceCacheProvider>
           </ProductCacheProvider>
         </AuthProvider>
       </body>

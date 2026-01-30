@@ -1,25 +1,44 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-
 import { Car, Home, Smartphone, Shirt, Gamepad, Watch, Bike, Sofa } from "lucide-react"
-
-const categories = [
-    { id: 'all', name: 'All', icon: null },
-    { id: 'electronics', name: 'Electronics', icon: Smartphone },
-    { id: 'fashion', name: 'Fashion', icon: Shirt },
-    { id: 'vehicles', name: 'Vehicles', icon: Car },
-    { id: 'real-estate', name: 'Real Estate', icon: Home },
-    { id: 'gaming', name: 'Gaming', icon: Gamepad },
-    { id: 'accessories', name: 'Accessories', icon: Watch },
-    { id: 'sports', name: 'Sports', icon: Bike },
-    { id: 'furniture', name: 'Furniture', icon: Sofa },
-]
-
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { productService } from "@/lib/productService"
+
+const iconMap: Record<string, any> = {
+    electronics: Smartphone,
+    fashion: Shirt,
+    vehicles: Car,
+    "real-estate": Home,
+    gaming: Gamepad,
+    accessories: Watch,
+    sports: Bike,
+    furniture: Sofa,
+}
 
 export default function CategoryBar() {
     const router = useRouter()
+    const [categories, setCategories] = useState<Array<{ id: string, name: string, icon: any }>>([
+        { id: "all", name: "All", icon: null },
+    ])
+
+    useEffect(() => {
+        const loadCategories = async () => {
+            try {
+                const data = await productService.listCategories()
+                const mapped = (data || []).map((cat: any) => ({
+                    id: cat.id,
+                    name: cat.name,
+                    icon: iconMap[cat.id] || null
+                }))
+                setCategories([{ id: "all", name: "All", icon: null }, ...mapped])
+            } catch (err) {
+                console.error("Failed to load categories:", err)
+            }
+        }
+        loadCategories()
+    }, [])
 
     const handleCategoryClick = (cat: typeof categories[0]) => {
         if (cat.id === 'all') {

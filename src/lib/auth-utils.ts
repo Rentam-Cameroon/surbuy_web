@@ -32,7 +32,8 @@ export function getTokenFromCookie(): string | null {
 
 export function parseJwt(token: string) {
     try {
-        const base64Url = token.split('.')[0]
+        const base64Url = token.split('.')[1]
+        if (!base64Url) return null
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
         const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
@@ -42,4 +43,15 @@ export function parseJwt(token: string) {
     } catch (e) {
         return null
     }
+}
+
+export function getUserIdFromToken(token?: string | null) {
+    if (!token) return null
+    const payload = parseJwt(token)
+    return payload?.sub || payload?.user_id || null
+}
+
+export function getUserIdFromCookie() {
+    const token = getTokenFromCookie()
+    return getUserIdFromToken(token)
 }

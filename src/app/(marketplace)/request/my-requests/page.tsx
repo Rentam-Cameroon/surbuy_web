@@ -11,6 +11,7 @@ import Link from "next/link"
 import { requestService } from "@/lib/requestService"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import { VerificationDialog } from "@/components/dialogs/VerificationDialog"
+import { cn } from "@/lib/utils"
 
 export default function MyRequestsPage() {
     const router = useRouter()
@@ -152,7 +153,7 @@ export default function MyRequestsPage() {
                                 <div className="flex items-center justify-between mt-2 pt-4 border-t border-border/40">
                                     <div className="flex items-center gap-2 text-sm font-bold text-primary">
                                         <MessageSquare className="w-4 h-4" />
-                                        {(responsesByRequest[req.id]?.length ?? 0)} Responses
+                                        {(req.response_count ?? responsesByRequest[req.id]?.length ?? 0)} Responses
                                     </div>
                                     <div className="flex items-center gap-2">
                                         {req.status === "active" && (
@@ -191,7 +192,18 @@ export default function MyRequestsPage() {
                                         ) : selectedResponses.length > 0 ? (
                                             <div className="space-y-3">
                                                 {selectedResponses.map((res) => (
-                                                    <div key={res.id} className="p-3 bg-muted/30 rounded-xl border border-border/20">
+                                                    <div
+                                                        key={res.id}
+                                                        className={cn(
+                                                            "p-3 bg-muted/30 rounded-xl border border-border/20",
+                                                            res.product?.id ? "cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-colors" : ""
+                                                        )}
+                                                        onClick={() => {
+                                                            if (res.product?.id) {
+                                                                router.push(`/marketplace/product/${res.product.id}`)
+                                                            }
+                                                        }}
+                                                    >
                                                         <div className="flex justify-between items-start mb-2">
                                                             <div className="flex items-center gap-2">
                                                                 <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
@@ -208,16 +220,12 @@ export default function MyRequestsPage() {
                                                         <p className="text-xs text-muted-foreground mb-2 italic">"{res.message}"</p>
                                                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                                                             {res.product?.id ? (
-                                                                <button
-                                                                    type="button"
-                                                                    className="text-left hover:text-primary transition-colors"
-                                                                    onClick={() => router.push(`/marketplace/product/${res.product.id}`)}
-                                                                >
+                                                                <div>
                                                                     <div className="font-semibold">{res.product.title}</div>
                                                                     <div className="text-[10px] text-muted-foreground">
                                                                         {Number(res.product.price ?? 0).toLocaleString()} FCFA
                                                                     </div>
-                                                                </button>
+                                                                </div>
                                                             ) : res.referral_contact ? (
                                                                 <span className="flex items-center gap-1">
                                                                     <Phone className="w-3 h-3" />

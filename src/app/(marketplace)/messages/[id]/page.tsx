@@ -10,24 +10,31 @@ import {
     ShoppingCart,
     FileText,
     CheckCircle2,
-    Clock
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { MOCK_CONVERSATIONS, MOCK_MESSAGES } from "@/lib/mockData"
 import { cn } from "@/lib/utils"
+import { chatService } from "@/lib/chatService"
+import { marketplaceService } from "@/lib/marketplaceService"
+import { useAuthStore } from "@/store/useAuthStore"
+import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
+import { supabase } from "@/lib/supabase"
 
 export default function ChatDetailPage() {
     const params = useParams()
     const router = useRouter()
     const scrollRef = useRef<HTMLDivElement>(null)
+    const { user } = useAuthStore()
 
     const convId = params.id as string
-    const conversation = MOCK_CONVERSATIONS.find(c => c.id === convId)
-    const [messages, setMessages] = useState(MOCK_MESSAGES[convId as keyof typeof MOCK_MESSAGES] || [])
+    const [conversation, setConversation] = useState<any | null>(null)
+    const [otherUser, setOtherUser] = useState<any | null>(null)
+    const [context, setContext] = useState<any | null>(null)
+    const [messages, setMessages] = useState<any[]>([])
     const [newMessage, setNewMessage] = useState("")
+    const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -35,34 +42,160 @@ export default function ChatDetailPage() {
         }
     }, [messages])
 
-    if (!conversation) return <div>Conversation not found</div>
+    useEffect(() => {
+        const loadConversation = async () => {
+            try {
+                setIsLoading(true)
+                const convoRes = await chatService.getConversation(convId)
+                const data = convoRes?.conversation
+                const other = convoRes?.other_user
+                if (!data) {
+                    setConversation(null)
+                    return
+                }
 
-    const handleSendMessage = (e: React.FormEvent) => {
-        e.preventDefault()
-        if (!newMessage.trim()) return
+                setConversation(data)
+                if (other) {
+                    setOtherUser(other)
+                }
 
-        const msg = {
-            id: `m${Date.now()}`,
-            sender_id: "user_me",
-            message_text: newMessage,
-            created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            is_read: false
+                if (data.product_id) {
+                    const product = await marketplaceService.getProduct(data.product_id)
+                    setContext({
+                        type: "product",
+                        title: product.title,
+                        price: product.price,
+                        id: product.id
+                    })
+                } else if (data.request_id) {
+                    const { data: request } = await supabase
+                        .from("requests")
+                        .select("id, title, max_budget")
+                        .eq("id", data.request_id)
+                        .single()
+                    if (request) {
+                        setContext({
+                            type: "request",
+                            title: request.title,
+                            price: request.max_budget
+                        })
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load conversation:", err)
+            } finally {
+                setIsLoading(false)
+            }
         }
 
-        setMessages([...messages, msg])
+        if (convId) {
+            loadConversation()
+        }
+    }, [convId, user?.id])
+
+    useEffect(() => {
+        const loadMessages = async () => {
+            try {
+                const data = await chatService.getMessages(convId)
+                setMessages(data || [])
+            } catch (err) {
+                console.error("Failed to load messages:", err)
+            }
+        }
+
+        if (convId) {
+            loadMessages()
+        }
+    }, [convId])
+
+    useEffect(() => {
+        let intervalId: ReturnType<typeof setInterval> | null = null
+        let isFetching = false
+
+        const pollMessages = async () => {
+            if (!convId || isFetching) return
+            isFetching = true
+            try {
+                const data = await chatService.getMessages(convId)
+                setMessages((prev) => {
+                    const prevIds = new Set(prev.map((m) => m.id))
+                    const merged = [...prev]
+                    data.forEach((m: any) => {
+                        if (!prevIds.has(m.id)) {
+                            merged.push(m)
+                        }
+                    })
+                    return merged
+                })
+            } catch (err) {
+                console.error("Polling messages failed:", err)
+            } finally {
+                isFetching = false
+            }
+        }
+
+        if (convId) {
+            intervalId = setInterval(pollMessages, 3000)
+        }
+
+        return () => {
+            if (intervalId) clearInterval(intervalId)
+        }
+    }, [convId])
+
+    useEffect(() => {
+        if (convId) {
+            chatService.markRead(convId).catch(() => {})
+        }
+    }, [convId])
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col h-screen bg-background max-w-screen-md mx-auto border-x border-border/40">
+                <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/40 p-4">
+                    <div className="flex items-center gap-3">
+                        <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full shrink-0">
+                            <ArrowLeft className="h-5 w-5" />
+                        </Button>
+                    </div>
+                </header>
+                <div className="flex-1 flex items-center justify-center">
+                    <CupertinoActivityIndicator size={28} />
+                </div>
+            </div>
+        )
+    }
+
+    if (!conversation) return <div>Conversation not found</div>
+
+    const handleSendMessage = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!newMessage.trim()) return
+        const optimisticId = `temp-${Date.now()}`
+        const optimisticMessage = {
+            id: optimisticId,
+            sender_id: user?.id,
+            message_text: newMessage.trim(),
+            created_at: new Date().toISOString(),
+            is_read: false,
+            is_pending: true
+        }
+
+        setMessages((prev) => [...prev, optimisticMessage])
         setNewMessage("")
 
-        // Simulate reply
-        setTimeout(() => {
-            const reply = {
-                id: `r${Date.now()}`,
-                sender_id: conversation.seller_id,
-                message_text: "Got it! Let me check on that for you.",
-                created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                is_read: false
-            }
-            setMessages(prev => [...prev, reply])
-        }, 2000)
+        try {
+            const sent = await chatService.sendMessage({
+                conversation_id: convId,
+                message_text: optimisticMessage.message_text
+            })
+            setMessages((prev) =>
+                prev.map((m) => (m.id === optimisticId ? { ...sent, is_pending: false } : m))
+            )
+        } catch (err) {
+            console.error("Failed to send message:", err)
+            setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
+        }
     }
 
     return (
@@ -76,11 +209,17 @@ export default function ChatDetailPage() {
 
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                         <Avatar className="h-10 w-10 ring-1 ring-border/50">
-                            <AvatarImage src={conversation.other_user.avatar} />
-                            <AvatarFallback>{conversation.other_user.name[0]}</AvatarFallback>
+                            <AvatarImage src={otherUser?.profile_image_url || ""} />
+                            <AvatarFallback>
+                                {(otherUser?.full_name || "U")
+                                    .split(" ")
+                                    .map((n: string) => n[0])
+                                    .join("")
+                                    .slice(0, 2)}
+                            </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                            <h2 className="font-bold text-sm truncate">{conversation.other_user.name}</h2>
+                            <h2 className="font-bold text-sm truncate">{otherUser?.full_name || "User"}</h2>
                             <span className="text-[10px] text-green-500 font-bold flex items-center gap-1">
                                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
                                 Online
@@ -94,10 +233,17 @@ export default function ChatDetailPage() {
                 </div>
 
                 {/* Context Sub-header */}
-                <div className="mt-3 bg-muted/30 rounded-2xl p-3 flex items-center justify-between border border-border/40 group hover:border-primary/20 transition-colors">
+                <div
+                    className="mt-3 bg-muted/30 rounded-2xl p-3 flex items-center justify-between border border-border/40 group hover:border-primary/20 transition-colors"
+                    onClick={() => {
+                        if (context?.type === "product" && context.id) {
+                            router.push(`/marketplace/product/${context.id}`)
+                        }
+                    }}
+                >
                     <div className="flex items-center gap-3 overflow-hidden">
                         <div className="h-10 w-10 rounded-xl bg-background border border-border/40 flex items-center justify-center shrink-0">
-                            {conversation.context.type === "product" ? (
+                            {context?.type === "product" ? (
                                 <ShoppingCart className="h-5 w-5 text-primary" />
                             ) : (
                                 <FileText className="h-5 w-5 text-primary" />
@@ -105,15 +251,15 @@ export default function ChatDetailPage() {
                         </div>
                         <div className="min-w-0">
                             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                {conversation.context.type} Inquiry
+                                {context?.type || "product"} Inquiry
                             </p>
-                            <h3 className="text-xs font-bold truncate">{conversation.context.title}</h3>
+                            <h3 className="text-xs font-bold truncate">{context?.title || "Item"}</h3>
                         </div>
                     </div>
-                    {conversation.context.price && (
+                    {context?.price && (
                         <div className="text-right shrink-0 ml-2">
                             <p className="text-sm font-black text-primary">
-                                {conversation.context.price.toLocaleString()} <span className="text-[10px]">XAF</span>
+                                {Number(context.price).toLocaleString()} <span className="text-[10px]">XAF</span>
                             </p>
                         </div>
                     )}
@@ -132,7 +278,7 @@ export default function ChatDetailPage() {
                 </div>
 
                 {messages.map((msg, idx) => {
-                    const isMe = msg.sender_id === "user_me"
+                    const isMe = msg.sender_id === user?.id
                     return (
                         <div
                             key={msg.id}
@@ -150,7 +296,12 @@ export default function ChatDetailPage() {
                                 {msg.message_text}
                             </div>
                             <div className="flex items-center gap-1.5 mt-1.5 px-1">
-                                <span className="text-[10px] text-muted-foreground font-medium">{msg.created_at}</span>
+                                <span className="text-[10px] text-muted-foreground font-medium">
+                                    {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                </span>
+                                {isMe && msg.is_pending && (
+                                    <span className="text-[10px] text-muted-foreground font-medium">Sending...</span>
+                                )}
                                 {isMe && (
                                     <CheckCircle2 className={cn("h-3 w-3", msg.is_read ? "text-primary" : "text-muted-foreground/40")} />
                                 )}

@@ -5,22 +5,27 @@ import { useRouter } from "next/navigation"
 import { ArrowLeft, Search, X, Clock, TrendingUp, ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { MOCK_LISTINGS } from "@/lib/mockData"
 import ListingCard from "@/components/marketplace/ListingCard"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import SearchFilterBar from "@/components/search/SearchFilterBar"
-import { cn } from "@/lib/utils"
-
-const POPULAR_SEARCHES = ["iPhone 15", "Toyota", "Apartment", "MacBook M3", "Sofa"]
+import { marketplaceService } from "@/lib/marketplaceService"
+import { useAuthStore } from "@/store/useAuthStore"
+import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
+import { getUserIdFromCookie } from "@/lib/auth-utils"
 
 export default function SearchPage() {
     const router = useRouter()
+    const { user } = useAuthStore()
+    const userId = user?.id || getUserIdFromCookie()
     const [query, setQuery] = useState("")
     const [recentSearches, setRecentSearches] = useState<string[]>([])
+    const [popularSearches, setPopularSearches] = useState<string[]>([])
     const [suggestions, setSuggestions] = useState<string[]>([])
     const [results, setResults] = useState<any[]>([])
     const [isSearching, setIsSearching] = useState(false)
+    const [isSearchingResults, setIsSearchingResults] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null)
+    const suggestionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     // Filter & Sort States
     const [selectedCategory, setCategory] = useState("All")
@@ -30,100 +35,151 @@ export default function SearchPage() {
     const [sortOrder, setSortOrder] = useState("newest")
 
     useEffect(() => {
-        // Load recent searches from local storage
-        const stored = localStorage.getItem("recentSearches")
-        if (stored) {
-            setRecentSearches(JSON.parse(stored))
+        const loadRecentAndPopular = async () => {
+            try {
+                if (userId) {
+                    const recent = await marketplaceService.getRecentSearches(userId)
+                    setRecentSearches(recent.map((r: any) => r.keyword || r))
+                } else {
+                    const stored = localStorage.getItem("recentSearches")
+                    if (stored) {
+                        setRecentSearches(JSON.parse(stored))
+                    }
+                }
+
+                const popular = await marketplaceService.getPopularSearches()
+                setPopularSearches(popular.map((p: any) => p.keyword || p))
+            } catch (err) {
+                console.error("Failed to load searches:", err)
+            }
         }
+
+        loadRecentAndPopular()
         // Focus input on mount
         inputRef.current?.focus()
-    }, [])
+    }, [userId])
 
     useEffect(() => {
-        if (query.trim().length > 0) {
-            // Generate suggestions based on mock listings
-            const filtered = MOCK_LISTINGS
-                .filter(item =>
-                    item.title.toLowerCase().includes(query.toLowerCase()) ||
-                    item.category.toLowerCase().includes(query.toLowerCase())
-                )
-                .map(item => item.title)
-                .slice(0, 8)
+        const keyword = query.trim()
+        if (suggestionTimerRef.current) {
+            clearTimeout(suggestionTimerRef.current)
+        }
 
-            // Deduplicate and filter out the exact query
-            setSuggestions(Array.from(new Set(filtered)))
-        } else {
+        if (keyword.length < 2) {
             setSuggestions([])
+            return
+        }
+
+        suggestionTimerRef.current = setTimeout(async () => {
+            try {
+                const data = await marketplaceService.getSearchSuggestions(keyword)
+                const unique = Array.from(new Set(data)).filter((s) => s.toLowerCase() !== keyword.toLowerCase())
+                setSuggestions(unique)
+            } catch (err) {
+                console.error("Failed to load suggestions:", err)
+                setSuggestions([])
+            }
+        }, 350)
+
+        return () => {
+            if (suggestionTimerRef.current) {
+                clearTimeout(suggestionTimerRef.current)
+            }
         }
     }, [query])
 
     // Effect to handle filtering and sorting when criteria change
     useEffect(() => {
         if (isSearching) {
-            applyFiltersAndSort(query)
+            runSearch(query)
         }
-    }, [selectedCategory, priceRange, location, condition, sortOrder, isSearching])
+    }, [selectedCategory, priceRange, location, condition, sortOrder, isSearching, query])
 
-    const applyFiltersAndSort = (searchTerm: string) => {
-        let filtered = MOCK_LISTINGS.filter(item =>
-            item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.category.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+    const runSearch = async (searchTerm: string) => {
+        const keyword = searchTerm.trim()
+        if (keyword.length < 2) return
 
-        // Apply Category Filter
-        if (selectedCategory !== "All") {
-            filtered = filtered.filter(item => item.category === selectedCategory)
-        }
-
-        // Apply Location Filter
-        if (location !== "Anywhere") {
-            filtered = filtered.filter(item => item.location.includes(location))
+        const priceToRange = (value: string) => {
+            if (value === "Under 50,000") return { min: undefined, max: 50000 }
+            if (value === "50,000 - 200,000") return { min: 50000, max: 200000 }
+            if (value === "200,000 - 500,000") return { min: 200000, max: 500000 }
+            if (value === "Over 500,000") return { min: 500000, max: undefined }
+            return { min: undefined, max: undefined }
         }
 
-        // Apply Price Filter (Mock Logic)
-        if (priceRange !== "Any Price") {
-            if (priceRange === "Under 50,000") filtered = filtered.filter(item => item.price < 50000)
-            else if (priceRange === "50,000 - 200,000") filtered = filtered.filter(item => item.price >= 50000 && item.price <= 200000)
-            else if (priceRange === "200,000 - 500,000") filtered = filtered.filter(item => item.price >= 200000 && item.price <= 500000)
-            else if (priceRange === "Over 500,000") filtered = filtered.filter(item => item.price > 500000)
+        const { min, max } = priceToRange(priceRange)
+        const sortMap: Record<string, "newest" | "oldest" | "lowest_price" | "highest_price"> = {
+            newest: "newest",
+            oldest: "oldest",
+            "price-low": "lowest_price",
+            "price-high": "highest_price",
         }
 
-        // Apply Sorting
-        const sorted = [...filtered].sort((a, b) => {
-            if (sortOrder === "price-low") return a.price - b.price
-            if (sortOrder === "price-high") return b.price - a.price
-            // Mocking newest/oldest with IDs for now
-            if (sortOrder === "newest") return b.id - a.id
-            if (sortOrder === "oldest") return a.id - b.id
-            return 0
-        })
-
-        setResults(sorted)
+        try {
+            setIsSearchingResults(true)
+            const data = await marketplaceService.searchProducts({
+                keyword,
+                category: selectedCategory !== "All" ? selectedCategory : undefined,
+                condition: condition !== "Any" ? condition : undefined,
+                location_city: location !== "Anywhere" ? location : undefined,
+                min_price: min,
+                max_price: max,
+                sort_by: sortMap[sortOrder],
+                user_id: userId ?? null,
+            })
+            const mapped = (data || []).map((product: any) => {
+                const images = Array.isArray(product.product_images) ? product.product_images : []
+                const primaryImage = images
+                    .slice()
+                    .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))[0]?.image_url
+                const locationLabel = [product.location_city, product.neighborhood].filter(Boolean).join(", ")
+                const categoryLabel = product.categories?.name || product.category || product.category_name || product.category_id
+                return {
+                    id: product.id,
+                    title: product.title,
+                    price: product.price,
+                    location: locationLabel,
+                    image: primaryImage,
+                    category: categoryLabel
+                }
+            })
+            setResults(mapped)
+        } catch (err) {
+            console.error("Search failed:", err)
+            setResults([])
+        } finally {
+            setIsSearchingResults(false)
+        }
     }
 
     const handleSearch = (searchTerm: string) => {
-        if (!searchTerm.trim()) return
+        const keyword = searchTerm.trim()
+        if (keyword.length < 2) return
 
-        // Add to recent searches
-        const updatedRecent = [searchTerm, ...recentSearches.filter(s => s !== searchTerm)].slice(0, 10)
-        setRecentSearches(updatedRecent)
-        localStorage.setItem("recentSearches", JSON.stringify(updatedRecent))
+        if (!userId) {
+            const updatedRecent = [keyword, ...recentSearches.filter(s => s !== keyword)].slice(0, 10)
+            setRecentSearches(updatedRecent)
+            localStorage.setItem("recentSearches", JSON.stringify(updatedRecent))
+        }
 
-        setQuery(searchTerm)
+        setQuery(keyword)
         setIsSearching(true)
-        applyFiltersAndSort(searchTerm)
     }
 
     const clearRecent = () => {
         setRecentSearches([])
-        localStorage.removeItem("recentSearches")
+        if (!userId) {
+            localStorage.removeItem("recentSearches")
+        }
     }
 
     const removeRecentItem = (e: React.MouseEvent, item: string) => {
         e.stopPropagation()
         const updated = recentSearches.filter(s => s !== item)
         setRecentSearches(updated)
-        localStorage.setItem("recentSearches", JSON.stringify(updated))
+        if (!userId) {
+            localStorage.setItem("recentSearches", JSON.stringify(updated))
+        }
     }
 
     return (
@@ -199,7 +255,7 @@ export default function SearchPage() {
                 {!isSearching ? (
                     <div className="py-2">
                         {/* Suggestions while typing */}
-                        {query.length > 0 && suggestions.length > 0 && (
+                        {query.length >= 2 && suggestions.length > 0 && (
                             <div className="mb-4">
                                 {suggestions.map((item, idx) => (
                                     <button
@@ -217,7 +273,7 @@ export default function SearchPage() {
                         )}
 
                         {/* Recent Searches */}
-                        {(query.length === 0 || suggestions.length === 0) && recentSearches.length > 0 && (
+                        {(query.length < 2 || suggestions.length === 0) && recentSearches.length > 0 && (
                             <div className="mb-6">
                                 <div className="flex items-center justify-between px-6 py-2">
                                     <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Recent</h2>
@@ -252,11 +308,11 @@ export default function SearchPage() {
                         )}
 
                         {/* Popular Searches */}
-                        {(query.length === 0 || suggestions.length === 0) && (
+                        {(query.length < 2 || suggestions.length === 0) && (
                             <div className="px-6">
                                 <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">Popular Searches</h2>
                                 <div className="flex flex-wrap gap-2">
-                                    {POPULAR_SEARCHES.map((item, idx) => (
+                                    {popularSearches.map((item, idx) => (
                                         <Button
                                             key={idx}
                                             variant="secondary"
@@ -280,21 +336,26 @@ export default function SearchPage() {
                                 {results.length === 0 ? "No results found" : `${results.length} results for "${query}"`}
                             </h2>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 px-4 overflow-hidden">
-                            {results.map((item) => (
-                                <ListingCard
-                                    key={item.id}
-                                    id={item.id.toString()}
-                                    title={item.title}
-                                    price={item.price}
-                                    location={item.location}
-                                    image={item.image}
-                                    category={item.category}
-                                    isNew={item.isNew}
-                                />
-                            ))}
-                        </div>
-                        {results.length === 0 && (
+                        {isSearchingResults ? (
+                            <div className="flex items-center justify-center py-12">
+                                <CupertinoActivityIndicator size={32} />
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 gap-4 px-4 overflow-hidden">
+                                {results.map((item) => (
+                                    <ListingCard
+                                        key={item.id}
+                                        id={item.id.toString()}
+                                        title={item.title}
+                                        price={item.price}
+                                        location={item.location}
+                                        image={item.image}
+                                        category={item.category}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                        {!isSearchingResults && results.length === 0 && (
                             <div className="py-20 text-center px-6">
                                 <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <Search className="h-8 w-8 text-muted-foreground" />
@@ -322,4 +383,3 @@ export default function SearchPage() {
         </div>
     )
 }
-

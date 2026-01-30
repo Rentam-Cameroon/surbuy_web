@@ -1,21 +1,49 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { useAuthStore } from "@/store/useAuthStore"
+import { marketplaceService } from "@/lib/marketplaceService"
 
 export default function EditProfilePage() {
     const router = useRouter()
+    const { user } = useAuthStore()
     const [formData, setFormData] = useState({
-        name: "Zadolf Ngouajio",
-        email: "zadolf@example.com",
-        phone: "+237 670 000 000",
-        bio: "I love buying and selling on Surbuy!",
+        name: "",
+        email: "",
+        phone: "",
+        bio: "",
     })
+
+    useEffect(() => {
+        const hydrate = async () => {
+            setFormData((prev) => ({
+                ...prev,
+                name: user?.full_name || "",
+                email: user?.email || "",
+                phone: user?.phone || "",
+            }))
+
+            if (!user?.id) return
+            try {
+                const profile = await marketplaceService.getUserProfile(user.id)
+                setFormData((prev) => ({
+                    ...prev,
+                    name: profile?.full_name || prev.name,
+                    bio: profile?.bio || "",
+                }))
+            } catch (err) {
+                console.error("Failed to load profile:", err)
+            }
+        }
+
+        hydrate()
+    }, [user?.id, user?.full_name, user?.email, user?.phone])
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()

@@ -6,18 +6,25 @@ import ChatAction from "./ChatAction"
 
 interface ProductInfoProps {
     title: string
-    price: number
+    price: number | string
     description: string
-    location: string
-    postedDate: string
-    category: string
-    condition: string
+    location?: string
+    postedDate?: string
+    category?: string
+    condition?: string
+    productId: string
+    conversationId?: string | null
+    isConversationLoading?: boolean
     seller: {
         name: string
-        avatar: string // URL or initials
+        avatar: string // initials fallback
+        avatarUrl?: string | null
         joinedDate: string
         rating: number
+        badgeLabel?: string
+        badgeClassName?: string
     }
+    onSellerClick?: () => void
 }
 
 export default function ProductInfo({
@@ -28,8 +35,14 @@ export default function ProductInfo({
     postedDate,
     category,
     condition,
-    seller
+    productId,
+    conversationId,
+    isConversationLoading,
+    seller,
+    onSellerClick
 }: ProductInfoProps) {
+    const resolvedPrice = typeof price === "string" ? Number(price) : price
+
     return (
         <div className="space-y-6">
             <div>
@@ -40,34 +53,49 @@ export default function ProductInfo({
                     </Button>
                 </div>
                 <div className="text-3xl font-extrabold text-primary mt-2">
-                    {price.toLocaleString('fr-CM')} XAF
+                    {Number.isFinite(resolvedPrice) ? resolvedPrice.toLocaleString('fr-CM') : 0} XAF
                 </div>
                 <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mt-3">
-                    <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" /> Posted {postedDate}
-                    </span>
-                    <span className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" /> {location}
-                    </span>
+                    {postedDate && (
+                        <span className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" /> Posted {postedDate}
+                        </span>
+                    )}
+                    {location && (
+                        <span className="flex items-center gap-1">
+                            <MapPin className="w-4 h-4" /> {location}
+                        </span>
+                    )}
                 </div>
             </div>
 
             {/* Quick Actions / Safety Flow */}
             <div className="p-4 bg-card border rounded-xl shadow-sm space-y-4">
-                <ChatAction sellerName={seller.name} />
+                <ChatAction
+                    sellerName={seller.name}
+                    productId={productId}
+                    existingConversationId={conversationId}
+                    disabled={isConversationLoading}
+                />
             </div>
 
             {/* Details Grid */}
-            <div className="grid grid-cols-2 gap-4 py-4 border-y border-border/50">
-                <div>
-                    <span className="text-muted-foreground text-sm block">Condition</span>
-                    <span className="font-medium">{condition}</span>
+            {(condition || category) && (
+                <div className="grid grid-cols-2 gap-4 py-4 border-y border-border/50">
+                    {condition && (
+                        <div>
+                            <span className="text-muted-foreground text-sm block">Condition</span>
+                            <span className="font-medium">{condition}</span>
+                        </div>
+                    )}
+                    {category && (
+                        <div>
+                            <span className="text-muted-foreground text-sm block">Category</span>
+                            <span className="font-medium">{category}</span>
+                        </div>
+                    )}
                 </div>
-                <div>
-                    <span className="text-muted-foreground text-sm block">Category</span>
-                    <span className="font-medium">{category}</span>
-                </div>
-            </div>
+            )}
 
             {/* Description */}
             <div className="space-y-2">
@@ -80,18 +108,24 @@ export default function ProductInfo({
             {/* Seller Info */}
             <div className="pt-4 border-t border-border/50">
                 <h3 className="font-semibold text-lg mb-4">Seller Information</h3>
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
-                        {seller.avatar}
+                <div className="flex items-center gap-4" onClick={onSellerClick}>
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl overflow-hidden">
+                        {seller.avatarUrl ? (
+                            <img src={seller.avatarUrl} alt={seller.name} className="w-full h-full object-cover" />
+                        ) : (
+                            seller.avatar
+                        )}
                     </div>
                     <div>
-                        <div className="font-bold">{seller.name}</div>
+                        <div className="font-bold flex items-center gap-2">
+                            <span>{seller.name}</span>
+                            {seller.badgeLabel && (
+                                <span className={seller.badgeClassName}>
+                                    {seller.badgeLabel}
+                                </span>
+                            )}
+                        </div>
                         <div className="text-sm text-muted-foreground">Joined {seller.joinedDate}</div>
-                    </div>
-                    <div className="ml-auto">
-                        <Button variant="link" className="text-muted-foreground hover:text-foreground p-0 h-auto">
-                            View Profile
-                        </Button>
                     </div>
                 </div>
                 <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground bg-secondary/30 p-3 rounded-lg">
