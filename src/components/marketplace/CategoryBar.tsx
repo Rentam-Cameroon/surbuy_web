@@ -3,8 +3,9 @@
 import { Button } from "@/components/ui/button"
 import { Car, Home, Smartphone, Shirt, Gamepad, Watch, Bike, Sofa } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useMemo } from "react"
 import { productService } from "@/lib/productService"
+import { useCachedData } from "@/hooks/useCachedData"
 
 const iconMap: Record<string, any> = {
     electronics: Smartphone,
@@ -19,26 +20,20 @@ const iconMap: Record<string, any> = {
 
 export default function CategoryBar() {
     const router = useRouter()
-    const [categories, setCategories] = useState<Array<{ id: string, name: string, icon: any }>>([
-        { id: "all", name: "All", icon: null },
-    ])
+    const { data: categoriesData } = useCachedData(
+        "marketplace:categories",
+        async () => productService.listCategories(),
+        { ttlMs: 30 * 60 * 1000 }
+    )
 
-    useEffect(() => {
-        const loadCategories = async () => {
-            try {
-                const data = await productService.listCategories()
-                const mapped = (data || []).map((cat: any) => ({
-                    id: cat.id,
-                    name: cat.name,
-                    icon: iconMap[cat.id] || null
-                }))
-                setCategories([{ id: "all", name: "All", icon: null }, ...mapped])
-            } catch (err) {
-                console.error("Failed to load categories:", err)
-            }
-        }
-        loadCategories()
-    }, [])
+    const categories = useMemo(() => {
+        const mapped = (categoriesData || []).map((cat: any) => ({
+            id: cat.id,
+            name: cat.name,
+            icon: iconMap[cat.id] || null
+        }))
+        return [{ id: "all", name: "All", icon: null }, ...mapped]
+    }, [categoriesData])
 
     const handleCategoryClick = (cat: typeof categories[0]) => {
         if (cat.id === 'all') {

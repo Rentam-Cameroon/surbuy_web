@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import { marketplaceService } from "@/lib/marketplaceService"
 import ListingCard from "@/components/marketplace/ListingCard"
+import { useCachedData } from "@/hooks/useCachedData"
 
 export default function SellerProfilePage() {
     const params = useParams()
@@ -14,7 +15,6 @@ export default function SellerProfilePage() {
     const sellerId = params?.id as string
     const [seller, setSeller] = useState<any | null>(null)
     const [products, setProducts] = useState<any[]>([])
-    const [isLoading, setIsLoading] = useState(true)
 
     const getInitials = (name?: string) => {
         if (!name) return "S"
@@ -63,28 +63,28 @@ export default function SellerProfilePage() {
         }
     }
 
+    const { data: sellerData, isLoading: isSellerLoading } = useCachedData(
+        `seller:${sellerId}`,
+        async () => marketplaceService.getUserProfile(sellerId),
+        { enabled: !!sellerId }
+    )
+
+    const { data: productsData, isLoading: isProductsLoading } = useCachedData(
+        `seller:${sellerId}:products`,
+        async () => {
+            const data = await marketplaceService.getSellerProducts({ seller_id: sellerId, page: 1, limit: 20 })
+            return (data.products || []).map((p: any) => mapProductToListing(p))
+        },
+        { enabled: !!sellerId }
+    )
+
     useEffect(() => {
-        const loadSeller = async () => {
-            try {
-                setIsLoading(true)
-                const profile = await marketplaceService.getUserProfile(sellerId)
-                setSeller(profile)
+        setSeller(sellerData || null)
+    }, [sellerData])
 
-                const data = await marketplaceService.getSellerProducts({ seller_id: sellerId, page: 1, limit: 20 })
-                setProducts((data.products || []).map((p: any) => mapProductToListing(p)))
-            } catch (err) {
-                console.error("Failed to load seller profile:", err)
-                setSeller(null)
-                setProducts([])
-            } finally {
-                setIsLoading(false)
-            }
-        }
-
-        if (sellerId) {
-            loadSeller()
-        }
-    }, [sellerId])
+    useEffect(() => {
+        setProducts(productsData || [])
+    }, [productsData])
 
     const formatDate = (dateString?: string) => {
         if (!dateString) return ""
@@ -92,7 +92,7 @@ export default function SellerProfilePage() {
         return date.toLocaleDateString("en-US", { month: "short", year: "numeric" })
     }
 
-    if (isLoading) {
+    if (isSellerLoading) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center">
                 <CupertinoActivityIndicator size={32} />
@@ -180,7 +180,11 @@ export default function SellerProfilePage() {
 
                 <div className="space-y-3">
                     <h2 className="text-lg font-bold">Listings</h2>
-                    {products.length > 0 ? (
+                    {isProductsLoading ? (
+                        <div className="flex items-center justify-center py-10">
+                            <CupertinoActivityIndicator size={28} />
+                        </div>
+                    ) : products.length > 0 ? (
                         <div className="grid grid-cols-2 gap-4">
                             {products.map((item) => (
                                 <ListingCard

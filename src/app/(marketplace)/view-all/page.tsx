@@ -4,12 +4,11 @@ import { Search, ArrowLeft } from "lucide-react"
 import ListingCard from "@/components/marketplace/ListingCard"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { useEffect, useState } from "react"
 import { marketplaceService } from "@/lib/marketplaceService"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
-import { useMarketplaceCache } from "@/contexts/MarketplaceCacheContext"
 import { useAuthStore } from "@/store/useAuthStore"
 import { getUserIdFromCookie } from "@/lib/auth-utils"
+import { useCachedData } from "@/hooks/useCachedData"
 
 export default function ViewAllPage() {
     const searchParams = useSearchParams()
@@ -17,9 +16,6 @@ export default function ViewAllPage() {
     const title = searchParams.get('title') || 'Listings'
     const category = searchParams.get('category')
     const type = searchParams.get('type') // 'new', 'popular', etc.
-    const [listings, setListings] = useState<any[]>([])
-    const [isLoading, setIsLoading] = useState(false)
-    const { getCache, setCache } = useMarketplaceCache()
     const { user } = useAuthStore()
     const userId = user?.id || getUserIdFromCookie()
 
@@ -45,39 +41,20 @@ export default function ViewAllPage() {
         }
     }
 
-    useEffect(() => {
-        const loadListings = async () => {
-            try {
-                setIsLoading(true)
-                const cacheKey = `view-all:${type || "new"}:${category || "all"}`
-                const cached = getCache(cacheKey)
-                if (cached) {
-                    setListings(cached)
-                    setIsLoading(false)
-                    return
-                }
-
-                const data = await marketplaceService.listProducts({
-                    type: (type as "new" | "popular" | "recommended") || "new",
-                    category_id: category && category !== "all" ? category : undefined,
-                    page: 1,
-                    limit: 20,
-                    user_id: userId ?? null
-                })
-                const isNewSection = type === "new"
-                const mapped = (data.products || []).map((p: any) => mapProductToListing(p, isNewSection))
-                setListings(mapped)
-                setCache(cacheKey, mapped)
-            } catch (err) {
-                console.error("Failed to load listings:", err)
-                setListings([])
-            } finally {
-                setIsLoading(false)
-            }
+    const { data: listingsData, isLoading: isLoadingListings } = useCachedData(
+        `view-all:${type || "new"}:${category || "all"}:${userId || "anon"}`,
+        async () => {
+            const data = await marketplaceService.listProducts({
+                type: (type as "new" | "popular" | "recommended") || "new",
+                category_id: category && category !== "all" ? category : undefined,
+                page: 1,
+                limit: 20,
+                user_id: userId ?? null
+            })
+            const isNewSection = type === "new"
+            return (data.products || []).map((p: any) => mapProductToListing(p, isNewSection))
         }
-
-        loadListings()
-    }, [category, type, getCache, setCache, userId])
+    )
 
     return (
         <div className="min-h-screen bg-background pb-20">
@@ -98,14 +75,14 @@ export default function ViewAllPage() {
 
             {/* Grid */}
             <main className="container mx-auto px-4 py-4">
-                {isLoading ? (
+                {isLoadingListings ? (
                     <div className="flex items-center justify-center py-16">
                         <CupertinoActivityIndicator size={32} />
                     </div>
                 ) : (
                     <>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {listings.map((item) => (
+                            {(listingsData || []).map((item: any) => (
                                 <ListingCard
                                     key={item.id}
                                     id={item.id}
@@ -118,7 +95,7 @@ export default function ViewAllPage() {
                                 />
                             ))}
                         </div>
-                        {listings.length === 0 && (
+                        {(listingsData || []).length === 0 && (
                             <div className="text-center py-20 text-muted-foreground">
                                 No listings found.
                             </div>

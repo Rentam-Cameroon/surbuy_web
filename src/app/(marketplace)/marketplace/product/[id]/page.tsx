@@ -9,10 +9,10 @@ import SimilarProducts from "@/components/marketplace/product-detail/SimilarProd
 import { Button } from "@/components/ui/button"
 import { marketplaceService } from "@/lib/marketplaceService"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
-import { useMarketplaceCache } from "@/contexts/MarketplaceCacheContext"
 import { chatService } from "@/lib/chatService"
 import { useAuthStore } from "@/store/useAuthStore"
 import { getUserIdFromCookie } from "@/lib/auth-utils"
+import { useCachedData } from "@/hooks/useCachedData"
 
 export default function ProductDetailPage() {
     const params = useParams()
@@ -20,10 +20,8 @@ export default function ProductDetailPage() {
     const productId = params?.id as string
     const [product, setProduct] = useState<any | null>(null)
     const [similarItems, setSimilarItems] = useState<any[]>([])
-    const [isLoading, setIsLoading] = useState(true)
     const [conversationId, setConversationId] = useState<string | null>(null)
     const [isCheckingConversation, setIsCheckingConversation] = useState(true)
-    const { getCache, setCache } = useMarketplaceCache()
     const { user } = useAuthStore()
     const userId = user?.id || getUserIdFromCookie()
 
@@ -80,47 +78,31 @@ export default function ProductDetailPage() {
         }
     }
 
+    const { data: productData, isLoading: isProductLoading } = useCachedData(
+        `product:${productId}`,
+        async () => {
+            const data = await marketplaceService.getProduct(productId)
+            return data
+        },
+        { enabled: !!productId }
+    )
+
+    const { data: similarData } = useCachedData(
+        `product:${productId}:similar:${userId || "anon"}`,
+        async () => {
+            const similar = await marketplaceService.getSimilarProducts(productId, userId ?? null)
+            return (similar || []).map((p: any) => mapProductToListing(p))
+        },
+        { enabled: !!productId }
+    )
+
     useEffect(() => {
-        const loadProduct = async () => {
-            try {
-                setIsLoading(true)
-                const productCacheKey = `product:${productId}`
-                const similarCacheKey = `product:${productId}:similar`
+        setProduct(productData || null)
+    }, [productData])
 
-                const cachedProduct = getCache(productCacheKey)
-                const cachedSimilar = getCache(similarCacheKey)
-
-                if (cachedProduct) {
-                    setProduct(cachedProduct)
-                }
-                if (cachedSimilar) {
-                    setSimilarItems(cachedSimilar)
-                }
-
-                if (!cachedProduct) {
-                    const data = await marketplaceService.getProduct(productId)
-                    setProduct(data)
-                    setCache(productCacheKey, data)
-                }
-
-                if (!cachedSimilar) {
-                    const similar = await marketplaceService.getSimilarProducts(productId, userId ?? null)
-                    const mapped = (similar || []).map((p: any) => mapProductToListing(p))
-                    setSimilarItems(mapped)
-                    setCache(similarCacheKey, mapped)
-                }
-            } catch (err) {
-                console.error("Failed to load product:", err)
-                setProduct(null)
-            } finally {
-                setIsLoading(false)
-            }
-        }
-
-        if (productId) {
-            loadProduct()
-        }
-    }, [productId])
+    useEffect(() => {
+        setSimilarItems(similarData || [])
+    }, [similarData])
 
     useEffect(() => {
         const checkConversation = async () => {
@@ -158,7 +140,7 @@ export default function ProductDetailPage() {
             .filter(Boolean)
     }, [product])
 
-    if (!product && isLoading) {
+    if (!product && isProductLoading) {
         return (
             <div className="container mx-auto px-4 py-6 max-w-7xl">
                 <Button
@@ -176,7 +158,7 @@ export default function ProductDetailPage() {
         )
     }
 
-    if (!product && !isLoading) {
+    if (!product && !isProductLoading) {
         return (
             <div className="container mx-auto px-4 py-6 max-w-7xl">
                 <Button

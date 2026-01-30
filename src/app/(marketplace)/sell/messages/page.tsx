@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { Search as SearchIcon, MessageSquare, ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -12,76 +12,61 @@ import { useAuthStore } from "@/store/useAuthStore"
 import { chatService } from "@/lib/chatService"
 import { marketplaceService } from "@/lib/marketplaceService"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
+import { useCachedData } from "@/hooks/useCachedData"
 
 export default function SellerMessagesPage() {
     const [searchQuery, setSearchQuery] = useState("")
-    const [conversations, setConversations] = useState<any[]>([])
     const { user } = useAuthStore()
-    const [isLoading, setIsLoading] = useState(true)
 
-    useEffect(() => {
-        const loadConversations = async () => {
-            try {
-                if (!user?.id) {
-                    setConversations([])
-                    setIsLoading(false)
-                    return
-                }
+    const { data: conversationsData, isLoading: isLoadingConversations } = useCachedData(
+        `conversations:sell:${user?.id || "anon"}`,
+        async () => {
+            if (!user?.id) return []
+            const list = await chatService.listMyConversations("sell-messages")
+            const enriched = await Promise.all(
+                list.map(async (conv: any) => {
+                    let context: any = { type: "product", title: "Item", id: conv.product_id || null }
+                    if (conv.product_id) {
+                        const product = await marketplaceService.getProduct(conv.product_id)
+                        context = { type: "product", title: product.title, price: product.price, id: product.id }
+                    } else if (conv.request_id) {
+                        context = { type: "request", title: "Request" }
+                    }
 
-                const list = await chatService.listMyConversations("sell-messages")
-
-                const enriched = await Promise.all(
-                    list.map(async (conv: any) => {
-                        let context: any = { type: "product", title: "Item", id: conv.product_id || null }
-                        if (conv.product_id) {
-                            const product = await marketplaceService.getProduct(conv.product_id)
-                            context = { type: "product", title: product.title, price: product.price, id: product.id }
-                        } else if (conv.request_id) {
-                            context = { type: "request", title: "Request" }
+                    const last = conv.last_message
+                        ? {
+                            created_at: new Date(conv.last_message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                            is_read: conv.last_message.is_read,
+                            sender_id: conv.last_message.sender_id,
+                            text: conv.last_message.message_text
+                        }
+                        : {
+                            created_at: "",
+                            is_read: true,
+                            sender_id: "",
+                            text: "No messages yet"
                         }
 
-                        const last = conv.last_message
-                            ? {
-                                created_at: new Date(conv.last_message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-                                is_read: conv.last_message.is_read,
-                                sender_id: conv.last_message.sender_id,
-                                text: conv.last_message.message_text
-                            }
-                            : {
-                                created_at: "",
-                                is_read: true,
-                                sender_id: "",
-                                text: "No messages yet"
-                            }
-
-                        return {
-                            id: conv.id,
-                            other_user: {
-                                name: conv.other_user?.full_name || "User",
-                                avatar: conv.other_user?.profile_image_url || "",
-                                isOnline: false
-                            },
-                            context,
-                            last_message: last
-                        }
-                    })
-                )
-
-                setConversations(enriched)
-            } catch (err) {
-                console.error("Failed to load conversations:", err)
-                setConversations([])
-            } finally {
-                setIsLoading(false)
-            }
-        }
-
-        loadConversations()
-    }, [user?.id])
+                    return {
+                        id: conv.id,
+                        other_user: {
+                            name: conv.other_user?.full_name || "User",
+                            avatar: conv.other_user?.profile_image_url || "",
+                            isOnline: false
+                        },
+                        context,
+                        last_message: last
+                    }
+                })
+            )
+            return enriched
+        },
+        { enabled: !!user?.id, ttlMs: 30 * 1000 }
+    )
 
     const filteredConversations = useMemo(() => {
         const normalized = (value: string) => value.toLowerCase()
-        return conversations
+        return (conversationsData || [])
             .slice()
             .sort((a, b) => {
                 const aDate = a.last_message?.created_at || a.created_at || ""
@@ -92,7 +77,7 @@ export default function SellerMessagesPage() {
                 normalized(conv.other_user.name).includes(normalized(searchQuery)) ||
                 normalized(conv.context.title).includes(normalized(searchQuery))
             )
-    }, [conversations, searchQuery])
+    }, [conversationsData, searchQuery])
 
     return (
         <div className="min-h-screen bg-background pb-32">
@@ -117,7 +102,7 @@ export default function SellerMessagesPage() {
 
             <main className="max-w-screen-md mx-auto">
                 <div className="divide-y divide-border/40">
-                    {isLoading ? (
+                    {isLoadingConversations ? (
                         <div className="flex items-center justify-center py-16">
                             <CupertinoActivityIndicator size={32} />
                         </div>

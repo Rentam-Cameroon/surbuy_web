@@ -21,6 +21,7 @@ import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ProductCacheProvider } from "@/contexts/ProductCacheContext";
 import { RequestCacheProvider } from "@/contexts/RequestCacheContext";
 import { MarketplaceCacheProvider } from "@/contexts/MarketplaceCacheContext";
+import { AppCacheProvider } from "@/contexts/AppCacheContext";
 
 export default function RootLayout({
   children,
@@ -35,9 +36,11 @@ export default function RootLayout({
         <AuthProvider>
           <ProductCacheProvider>
             <MarketplaceCacheProvider>
-              <RequestCacheProvider>
-                {children}
-              </RequestCacheProvider>
+              <AppCacheProvider>
+                <RequestCacheProvider>
+                  {children}
+                </RequestCacheProvider>
+              </AppCacheProvider>
             </MarketplaceCacheProvider>
           </ProductCacheProvider>
         </AuthProvider>

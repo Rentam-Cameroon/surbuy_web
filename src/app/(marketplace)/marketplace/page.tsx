@@ -7,25 +7,18 @@ import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import ProductSection from "@/components/marketplace/ProductSection"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { authService } from "@/lib/authService"
 import { marketplaceService } from "@/lib/marketplaceService"
-import { useMarketplaceCache } from "@/contexts/MarketplaceCacheContext"
 import { useAuthStore } from "@/store/useAuthStore"
 import { getUserIdFromCookie } from "@/lib/auth-utils"
+import { useCachedData } from "@/hooks/useCachedData"
 
 export default function Dashboard() {
     const router = useRouter()
-    const { getCache, setCache } = useMarketplaceCache()
     const { user } = useAuthStore()
     const userId = user?.id || getUserIdFromCookie()
     const [isCheckingKyc, setIsCheckingKyc] = useState(false)
-    const [newListings, setNewListings] = useState<any[]>([])
-    const [popularListings, setPopularListings] = useState<any[]>([])
-    const [recommendedListings, setRecommendedListings] = useState<any[]>([])
-    const [isLoadingNew, setIsLoadingNew] = useState(true)
-    const [isLoadingPopular, setIsLoadingPopular] = useState(true)
-    const [isLoadingRecommended, setIsLoadingRecommended] = useState(true)
 
     const handleSellClick = async () => {
         if (isCheckingKyc) return
@@ -59,61 +52,29 @@ export default function Dashboard() {
         }
     }
 
-    useEffect(() => {
-        const loadListings = async () => {
-            try {
-                const cachedNew = getCache("marketplace:new")
-                const cachedPopular = getCache("marketplace:popular")
-                const cachedRecommended = getCache("marketplace:recommended")
-
-                if (cachedNew) {
-                    setNewListings(cachedNew)
-                    setIsLoadingNew(false)
-                }
-                if (cachedPopular) {
-                    setPopularListings(cachedPopular)
-                    setIsLoadingPopular(false)
-                }
-                if (cachedRecommended) {
-                    setRecommendedListings(cachedRecommended)
-                    setIsLoadingRecommended(false)
-                }
-
-                const [newRes, popularRes, recommendedRes] = await Promise.all([
-                    cachedNew ? null : marketplaceService.listProducts({ type: "new", page: 1, limit: 4, user_id: userId ?? null }),
-                    cachedPopular ? null : marketplaceService.listProducts({ type: "popular", page: 1, limit: 4, user_id: userId ?? null }),
-                    cachedRecommended ? null : marketplaceService.listProducts({ type: "recommended", page: 1, limit: 4, user_id: userId ?? null }),
-                ])
-
-                if (newRes) {
-                    const mapped = (newRes.products || []).map((p: any) => mapProductToListing(p, true))
-                    setNewListings(mapped)
-                    setCache("marketplace:new", mapped)
-                    setIsLoadingNew(false)
-                }
-                if (popularRes) {
-                    const mapped = (popularRes.products || []).map((p: any) => mapProductToListing(p))
-                    setPopularListings(mapped)
-                    setCache("marketplace:popular", mapped)
-                    setIsLoadingPopular(false)
-                }
-                if (recommendedRes) {
-                    const mapped = (recommendedRes.products || []).map((p: any) => mapProductToListing(p))
-                    setRecommendedListings(mapped)
-                    setCache("marketplace:recommended", mapped)
-                    setIsLoadingRecommended(false)
-                }
-            } catch (err) {
-                console.error("Failed to load marketplace listings:", err)
-            } finally {
-                setIsLoadingNew(false)
-                setIsLoadingPopular(false)
-                setIsLoadingRecommended(false)
-            }
+    const { data: newListingsData, isLoading: isLoadingNew } = useCachedData(
+        `marketplace:new:${userId || "anon"}`,
+        async () => {
+            const res = await marketplaceService.listProducts({ type: "new", page: 1, limit: 4, user_id: userId ?? null })
+            return (res.products || []).map((p: any) => mapProductToListing(p, true))
         }
+    )
 
-        loadListings()
-    }, [getCache, setCache, userId])
+    const { data: popularListingsData, isLoading: isLoadingPopular } = useCachedData(
+        `marketplace:popular:${userId || "anon"}`,
+        async () => {
+            const res = await marketplaceService.listProducts({ type: "popular", page: 1, limit: 4, user_id: userId ?? null })
+            return (res.products || []).map((p: any) => mapProductToListing(p))
+        }
+    )
+
+    const { data: recommendedListingsData, isLoading: isLoadingRecommended } = useCachedData(
+        `marketplace:recommended:${userId || "anon"}`,
+        async () => {
+            const res = await marketplaceService.listProducts({ type: "recommended", page: 1, limit: 4, user_id: userId ?? null })
+            return (res.products || []).map((p: any) => mapProductToListing(p))
+        }
+    )
 
     return (
         <div className="min-h-screen bg-background pb-28 md:pb-8">
@@ -157,19 +118,19 @@ export default function Dashboard() {
             <main className="container mx-auto px-4 py-6 space-y-10">
                 <ProductSection
                     title="Newly Added"
-                    listings={newListings}
+                    listings={newListingsData || []}
                     isLoading={isLoadingNew}
                     href="/view-all?title=Newly%20Added&type=new"
                 />
                 <ProductSection
                     title="Popular"
-                    listings={popularListings}
+                    listings={popularListingsData || []}
                     isLoading={isLoadingPopular}
                     href="/view-all?title=Popular&type=popular"
                 />
                 <ProductSection
                     title="Recommended for you"
-                    listings={recommendedListings}
+                    listings={recommendedListingsData || []}
                     isLoading={isLoadingRecommended}
                     href="/view-all?title=Recommended&type=recommended"
                 />
