@@ -11,13 +11,13 @@ export const metadata: Metadata = {
     title: "Surbuy",
   },
   icons: [
-    { rel: "icon", url: "/icon.svg" },
+    { rel: "icon", url: "/surbuy-icon.png" },
     { rel: "apple-touch-icon", url: "/icon-180.png" },
   ],
 };
 
 export const viewport = {
-  themeColor: "#8b5cf6",
+  themeColor: "#5e17eb",
 };
 
 import { AuthProvider } from "@/components/providers/AuthProvider";

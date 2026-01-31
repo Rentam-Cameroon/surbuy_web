@@ -14,7 +14,7 @@ interface ListingCardProps {
 }
 
 export default function ListingCard({ id = "1", title, price, location, image, category, isNew }: ListingCardProps & { id?: string }) {
-    const resolvedImage = image || "/icon.svg"
+    const resolvedImage = image || ""
     const resolvedCategory = category || ""
     const resolvedLocation = location || ""
     const resolvedPrice = typeof price === "string" ? Number(price) : price
@@ -23,13 +23,32 @@ export default function ListingCard({ id = "1", title, price, location, image, c
         <Link href={`/marketplace/product/${id}`}>
             <Card className="overflow-hidden border-border/40 hover:shadow-lg transition-all group cursor-pointer bg-card h-full">
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
-                    <Image
-                        src={resolvedImage}
-                        alt={title}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                    />
+                    {resolvedImage ? (
+                        <Image
+                            src={resolvedImage}
+                            alt={title}
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            sizes="(max-width: 768px) 100vw, 33vw"
+                        />
+                    ) : (
+                        <>
+                            <Image
+                                src="/surbuy-icon.png"
+                                alt="Surbuy"
+                                fill
+                                className="object-contain logo-light p-6"
+                                sizes="(max-width: 768px) 100vw, 33vw"
+                            />
+                            <Image
+                                src="/surbuy-icon-dark.png"
+                                alt="Surbuy"
+                                fill
+                                className="object-contain logo-dark p-6"
+                                sizes="(max-width: 768px) 100vw, 33vw"
+                            />
+                        </>
+                    )}
                     <div className="absolute top-3 right-3">
                         <Button
                             size="icon"

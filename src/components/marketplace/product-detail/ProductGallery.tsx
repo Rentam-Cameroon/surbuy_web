@@ -8,9 +8,10 @@ import Image from "next/image"
 interface ProductGalleryProps {
     images: string[]
     title: string
+    isPlaceholder?: boolean
 }
 
-export default function ProductGallery({ images, title }: ProductGalleryProps) {
+export default function ProductGallery({ images, title, isPlaceholder }: ProductGalleryProps) {
     const [selectedIndex, setSelectedIndex] = useState(0)
     const [isLightboxOpen, setIsLightboxOpen] = useState(false)
 
@@ -39,13 +40,32 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
                         transition={{ duration: 0.3 }}
                         className="w-full h-full"
                     >
-                        <Image
-                            src={images[selectedIndex]}
-                            alt={`${title} - View ${selectedIndex + 1}`}
-                            fill
-                            className="object-cover"
-                            priority
-                        />
+                        {isPlaceholder ? (
+                            <>
+                                <Image
+                                    src="/surbuy-icon.png"
+                                    alt="Surbuy"
+                                    fill
+                                    className="object-contain logo-light p-12"
+                                    priority
+                                />
+                                <Image
+                                    src="/surbuy-icon-dark.png"
+                                    alt="Surbuy"
+                                    fill
+                                    className="object-contain logo-dark p-12"
+                                    priority
+                                />
+                            </>
+                        ) : (
+                            <Image
+                                src={images[selectedIndex]}
+                                alt={`${title} - View ${selectedIndex + 1}`}
+                                fill
+                                className="object-cover"
+                                priority
+                            />
+                        )}
                     </motion.div>
 
                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -74,7 +94,7 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
                 </div>
 
                 {/* Thumbnails */}
-                {images.length > 1 && (
+                {images.length > 1 && !isPlaceholder && (
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                         {images.map((img, idx) => (
                             <button

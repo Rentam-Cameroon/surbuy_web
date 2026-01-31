@@ -131,14 +131,15 @@ export default function ProductDetailPage() {
         router.push(`/seller/${product.seller.id}`)
     }
 
+    const isPlaceholderImages = !product?.product_images?.length
     const images = useMemo(() => {
-        if (!product?.product_images?.length) return ["/icon.svg"]
+        if (isPlaceholderImages) return ["/surbuy-icon.png"]
         return product.product_images
             .slice()
             .sort((a: any, b: any) => (a.display_order ?? 0) - (b.display_order ?? 0))
             .map((img: any) => img.image_url)
             .filter(Boolean)
-    }, [product])
+    }, [product, isPlaceholderImages])
 
     if (!product && isProductLoading) {
         return (
@@ -191,7 +192,7 @@ export default function ProductDetailPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
                 {/* Left Column: Gallery */}
                 <div className="lg:col-span-7 xl:col-span-8">
-                    <ProductGallery images={images} title={product?.title || "Product"} />
+                    <ProductGallery images={images} title={product?.title || "Product"} isPlaceholder={isPlaceholderImages} />
                 </div>
 
                 {/* Right Column: Info & Actions */}

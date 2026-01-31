@@ -85,10 +85,8 @@ export default function Dashboard() {
                     <div className="flex items-center px-4 justify-between h-10 relative">
                         {/* Logo */}
                         <div className="flex items-center gap-2">
-                            <Image src="/icon.svg" alt="Surbuy Logo" width={32} height={32} />
-                            <span className="text-xl font-bold tracking-widest text-primary font-mono italic">
-                                SURBUY
-                            </span>
+                            <Image src="/surbuy-logo.png" alt="Surbuy Logo" width={128} height={32} className="logo-light" />
+                            <Image src="/surbuy-logo-dark.png" alt="Surbuy Logo" width={128} height={32} className="logo-dark" />
                         </div>
 
                         {/* Right Actions */}

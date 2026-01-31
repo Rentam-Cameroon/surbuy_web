@@ -61,7 +61,8 @@ export default function SellDashboard() {
             <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/40 px-6 py-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <Image src="/icon.svg" alt="Surbuy Logo" width={32} height={32} />
+                        <Image src="/surbuy-logo.png" alt="Surbuy Logo" width={128} height={32} className="logo-light" />
+                        <Image src="/surbuy-logo-dark.png" alt="Surbuy Logo" width={128} height={32} className="logo-dark" />
                         <span className="text-xl font-bold tracking-widest text-primary font-mono italic">
                             SELL
                         </span>

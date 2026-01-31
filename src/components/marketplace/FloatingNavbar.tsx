@@ -24,7 +24,7 @@ export default function FloatingNavbar() {
 
     return (
         <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
-            <div className="flex items-center gap-1 bg-white/80 backdrop-blur-lg border border-white/20 shadow-2xl rounded-full p-2 px-6 pointer-events-auto ring-1 ring-black/5 dark:bg-zinc-900/80 dark:border-zinc-800">
+            <div className="flex items-center gap-1 bg-card/85 backdrop-blur-lg border border-border/60 shadow-2xl rounded-full p-2 px-6 pointer-events-auto ring-1 ring-border/40">
                 {navItems.map((item) => {
                     const isActive = pathname === item.path
                     return (

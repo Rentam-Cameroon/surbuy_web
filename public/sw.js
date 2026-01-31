@@ -3,7 +3,10 @@ const PRECACHE_URLS = [
   "/",
   "/marketplace",
   "/manifest.webmanifest",
-  "/icon.svg"
+  "/surbuy-icon.png",
+  "/icon-192.png",
+  "/icon-512.png",
+  "/icon-512-maskable.png"
 ];
 
 self.addEventListener("install", (event) => {

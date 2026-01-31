@@ -8,18 +8,12 @@ export default function manifest(): MetadataRoute.Manifest {
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',
-        theme_color: '#8b5cf6', // Primary purple
+        theme_color: '#5e17eb',
         icons: [
             {
-                src: '/icon.svg',
-                sizes: 'any',
-                type: 'image/svg+xml',
-            },
-            {
-                src: '/icon.svg',
-                sizes: 'any',
-                type: 'image/svg+xml',
-                purpose: 'maskable'
+                src: '/surbuy-icon.png',
+                sizes: '512x512',
+                type: 'image/png',
             },
             {
                 src: '/icon-192.png',

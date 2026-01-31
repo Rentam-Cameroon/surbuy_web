@@ -14,10 +14,17 @@ export default function SplashScreen() {
             >
                 <div className="relative w-32 h-32">
                     <Image
-                        src="/icon.svg"
-                        alt="Surbuy Logo"
+                        src="/surbuy-icon.png"
+                        alt="Surbuy"
                         fill
-                        className="object-contain"
+                        className="object-contain logo-light"
+                        priority
+                    />
+                    <Image
+                        src="/surbuy-icon-dark.png"
+                        alt="Surbuy"
+                        fill
+                        className="object-contain logo-dark"
                         priority
                     />
                 </div>
