@@ -1,22 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Surbuy",
   description: "Cameroon's Premium Marketplace",
   manifest: "/manifest.webmanifest",
-  themeColor: "#8b5cf6",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -26,6 +14,10 @@ export const metadata: Metadata = {
     { rel: "icon", url: "/icon.svg" },
     { rel: "apple-touch-icon", url: "/icon-180.png" },
   ],
+};
+
+export const viewport = {
+  themeColor: "#8b5cf6",
 };
 
 import { AuthProvider } from "@/components/providers/AuthProvider";
@@ -44,9 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className="antialiased">
         <AuthProvider>
           <ProductCacheProvider>
             <MarketplaceCacheProvider>

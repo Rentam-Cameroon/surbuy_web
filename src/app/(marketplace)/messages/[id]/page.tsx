@@ -14,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { chatService } from "@/lib/chatService"
 import { marketplaceService } from "@/lib/marketplaceService"
@@ -36,23 +35,6 @@ export default function ChatDetailPage() {
     const [messages, setMessages] = useState<any[]>([])
     const [newMessage, setNewMessage] = useState("")
     const [isLoading, setIsLoading] = useState(true)
-
-    if (isAuthLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <CupertinoActivityIndicator size={28} />
-            </div>
-        )
-    }
-
-    if (!user) {
-        return (
-            <AuthRequiredState
-                title="Login Required"
-                description="Login to view this conversation."
-            />
-        )
-    }
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -106,7 +88,7 @@ export default function ChatDetailPage() {
             }
         }
 
-        if (convId) {
+        if (convId && user?.id) {
             loadConversation()
         }
     }, [convId, user?.id])
@@ -121,17 +103,17 @@ export default function ChatDetailPage() {
             }
         }
 
-        if (convId) {
+        if (convId && user?.id) {
             loadMessages()
         }
-    }, [convId])
+    }, [convId, user?.id])
 
     useEffect(() => {
         let intervalId: ReturnType<typeof setInterval> | null = null
         let isFetching = false
 
         const pollMessages = async () => {
-            if (!convId || isFetching) return
+            if (!convId || !user?.id || isFetching) return
             isFetching = true
             try {
                 const data = await chatService.getMessages(convId)
@@ -152,20 +134,37 @@ export default function ChatDetailPage() {
             }
         }
 
-        if (convId) {
+        if (convId && user?.id) {
             intervalId = setInterval(pollMessages, 3000)
         }
 
         return () => {
             if (intervalId) clearInterval(intervalId)
         }
-    }, [convId])
+    }, [convId, user?.id])
 
     useEffect(() => {
-        if (convId) {
+        if (convId && user?.id) {
             chatService.markRead(convId).catch(() => {})
         }
-    }, [convId])
+    }, [convId, user?.id])
+
+    if (isAuthLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <CupertinoActivityIndicator size={28} />
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <AuthRequiredState
+                title="Login Required"
+                description="Login to view this conversation."
+            />
+        )
+    }
 
     if (isLoading) {
         return (
@@ -295,7 +294,7 @@ export default function ChatDetailPage() {
                     </p>
                 </div>
 
-                {messages.map((msg, idx) => {
+                {messages.map((msg) => {
                     const isMe = msg.sender_id === user?.id
                     return (
                         <div

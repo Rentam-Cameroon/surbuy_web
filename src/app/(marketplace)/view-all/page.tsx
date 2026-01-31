@@ -9,8 +9,9 @@ import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-i
 import { useAuthStore } from "@/store/useAuthStore"
 import { getUserIdFromCookie } from "@/lib/auth-utils"
 import { useCachedData } from "@/hooks/useCachedData"
+import { Suspense } from "react"
 
-export default function ViewAllPage() {
+function ViewAllContent() {
     const searchParams = useSearchParams()
     const router = useRouter()
     const title = searchParams.get('title') || 'Listings'
@@ -104,5 +105,19 @@ export default function ViewAllPage() {
                 )}
             </main>
         </div>
+    )
+}
+
+export default function ViewAllPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="min-h-screen flex items-center justify-center">
+                    <CupertinoActivityIndicator size={28} />
+                </div>
+            }
+        >
+            <ViewAllContent />
+        </Suspense>
     )
 }

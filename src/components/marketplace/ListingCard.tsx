@@ -3,6 +3,7 @@ import Link from "next/link"
 
 import { Button } from "@/components/ui/button" // Assuming you have this
 import { Heart, MapPin } from "lucide-react"
+import Image from "next/image"
 interface ListingCardProps {
     title: string
     price: number | string
@@ -22,10 +23,12 @@ export default function ListingCard({ id = "1", title, price, location, image, c
         <Link href={`/marketplace/product/${id}`}>
             <Card className="overflow-hidden border-border/40 hover:shadow-lg transition-all group cursor-pointer bg-card h-full">
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
-                    <img
+                    <Image
                         src={resolvedImage}
                         alt={title}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        sizes="(max-width: 768px) 100vw, 33vw"
                     />
                     <div className="absolute top-3 right-3">
                         <Button

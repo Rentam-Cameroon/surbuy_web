@@ -76,7 +76,7 @@ export default function MyRequestsPage() {
             setRequests((prev) =>
                 prev.map((req) => (req.id === requestId ? { ...req, status: "closed" } : req))
             )
-        } catch (err) {
+        } catch {
             alert("Failed to close request")
         } finally {
             setActioningId(null)

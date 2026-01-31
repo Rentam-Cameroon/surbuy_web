@@ -8,14 +8,11 @@ import {
     Bell,
     MessageSquare,
     BadgeCheck,
-    Clock,
-    MoreHorizontal,
     ShoppingBag,
     Star
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import Link from "next/link"

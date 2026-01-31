@@ -15,8 +15,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { cn } from "@/lib/utils"
-import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
+import Image from "next/image"
 import { productService } from "@/lib/productService"
 import { motion, AnimatePresence } from "framer-motion"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
@@ -263,7 +262,7 @@ export default function AddProductPage() {
                         {/* Existing images (in edit mode) */}
                         {existingImages.map((img, idx) => (
                             <div key={`existing-${idx}`} className="relative aspect-square rounded-2xl overflow-hidden border border-border/40 group">
-                                <img src={img.image_url} alt={`Existing ${idx}`} className="w-full h-full object-cover" />
+                                <Image src={img.image_url} alt={`Existing ${idx}`} fill className="object-cover" sizes="160px" />
                                 <button
                                     type="button"
                                     onClick={() => removeExistingImage(idx)}
@@ -276,7 +275,7 @@ export default function AddProductPage() {
                         {/* New images */}
                         {imagePreviews.map((src, idx) => (
                             <div key={`new-${idx}`} className="relative aspect-square rounded-2xl overflow-hidden border border-border/40 group">
-                                <img src={src} alt={`Upload ${idx}`} className="w-full h-full object-cover" />
+                                <Image src={src} alt={`Upload ${idx}`} fill className="object-cover" sizes="160px" />
                                 <button
                                     type="button"
                                     onClick={() => removeImage(idx)}

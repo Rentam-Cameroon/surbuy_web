@@ -1,8 +1,6 @@
 "use client"
 
-import { useState } from "react"
 import {
-    User,
     Mail,
     Phone,
     ShieldCheck,

@@ -1,9 +1,6 @@
-import { Button } from "@/components/ui/button"
 import { useKYCStore } from "@/store/useKYCStore"
-import { motion, AnimatePresence } from "framer-motion"
-import { UploadCloud, FileText, Check, ShieldCheck, AlertCircle, Clock, XCircle } from "lucide-react"
-import { useState } from "react"
-import { cn } from "@/lib/utils"
+import { motion } from "framer-motion"
+import { UploadCloud, Check, ShieldCheck, Clock, XCircle } from "lucide-react"
 import { Label } from "@/components/ui/label"
 
 export default function DocumentUpload() {
@@ -19,7 +16,7 @@ export default function DocumentUpload() {
         }
     }
 
-    const getStatusUI = (status: string, reason?: string) => {
+    const getStatusUI = (status: string) => {
         switch (status) {
             case 'approved':
                 return (
@@ -46,7 +43,7 @@ export default function DocumentUpload() {
         }
     }
 
-    const renderUploadZone = (type: 'front' | 'back', file: File | null, status: string, reason?: string) => {
+    const renderUploadZone = (type: 'front' | 'back', file: File | null, status: string) => {
         const isSubmitted = status === 'approved' || status === 'pending'
 
         return (
@@ -55,7 +52,7 @@ export default function DocumentUpload() {
                     <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                         {type === 'front' ? 'Front Side' : 'Back Side'}
                     </Label>
-                    {getStatusUI(status, reason)}
+                    {getStatusUI(status)}
                 </div>
 
                 {status === 'rejected' && reason && (

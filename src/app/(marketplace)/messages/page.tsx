@@ -1,9 +1,8 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Search as SearchIcon, MessageSquare, ChevronRight, SlidersHorizontal, Filter } from "lucide-react"
+import { Search as SearchIcon, MessageSquare, ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
@@ -19,23 +18,6 @@ import AuthRequiredState from "@/components/common/AuthRequiredState"
 export default function MessagesListPage() {
     const [searchQuery, setSearchQuery] = useState("")
     const { user, isLoading } = useAuthStore()
-
-    if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <CupertinoActivityIndicator size={28} />
-            </div>
-        )
-    }
-
-    if (!user) {
-        return (
-            <AuthRequiredState
-                title="Login Required"
-                description="Login to view your conversations."
-            />
-        )
-    }
 
     const { data: conversationsData, isLoading: isLoadingConversations } = useCachedData(
         `conversations:marketplace:${user?.id || "anon"}`,
@@ -98,6 +80,23 @@ export default function MessagesListPage() {
             )
     }, [conversationsData, searchQuery])
 
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <CupertinoActivityIndicator size={28} />
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <AuthRequiredState
+                title="Login Required"
+                description="Login to view your conversations."
+            />
+        )
+    }
+
     return (
         <div className="min-h-screen bg-background pb-32">
             {/* Header */}
@@ -136,7 +135,7 @@ export default function MessagesListPage() {
                                     <Avatar className="h-14 w-14 border-2 border-background shadow-sm ring-1 ring-border/50">
                                         <AvatarImage src={conv.other_user.avatar} />
                                         <AvatarFallback className="bg-primary/5 text-primary font-bold">
-                                            {conv.other_user.name.split(' ').map(n => n[0]).join('')}
+                                            {conv.other_user.name.split(' ').map((n: string) => n[0]).join('')}
                                         </AvatarFallback>
                                     </Avatar>
                                     {conv.other_user.isOnline && (

@@ -15,7 +15,7 @@ import {
 import Link from "next/link"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import { cn } from "@/lib/utils"
-import KYCOverlay from "@/components/marketplace/KYCOverlay"
+import Image from "next/image"
 
 export default function SellDashboard() {
     const [showBanner, setShowBanner] = useState(true)
@@ -61,7 +61,7 @@ export default function SellDashboard() {
             <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/40 px-6 py-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <img src="/icon.svg" alt="Surbuy Logo" className="h-8 w-8" />
+                        <Image src="/icon.svg" alt="Surbuy Logo" width={32} height={32} />
                         <span className="text-xl font-bold tracking-widest text-primary font-mono italic">
                             SELL
                         </span>

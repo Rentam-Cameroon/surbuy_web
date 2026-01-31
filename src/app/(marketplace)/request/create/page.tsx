@@ -13,7 +13,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { requestService } from "@/lib/requestService"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import { useRequestCache } from "@/contexts/RequestCacheContext"
@@ -25,7 +25,7 @@ interface Category {
     name: string
 }
 
-export default function CreateRequestPage() {
+function CreateRequestContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const editId = searchParams.get("edit")
@@ -272,5 +272,19 @@ export default function CreateRequestPage() {
                 </Button>
             </form>
         </div>
+    )
+}
+
+export default function CreateRequestPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="min-h-screen flex items-center justify-center">
+                    <CupertinoActivityIndicator size={28} />
+                </div>
+            }
+        >
+            <CreateRequestContent />
+        </Suspense>
     )
 }

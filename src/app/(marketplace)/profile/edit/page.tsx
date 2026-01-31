@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Save } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -22,6 +22,31 @@ export default function EditProfilePage() {
         bio: "",
     })
 
+    useEffect(() => {
+        const hydrate = async () => {
+            if (!user?.id) return
+            setFormData((prev) => ({
+                ...prev,
+                name: user?.full_name || "",
+                email: user?.email || "",
+                phone: user?.phone || "",
+            }))
+
+            try {
+                const profile = await marketplaceService.getUserProfile(user.id)
+                setFormData((prev) => ({
+                    ...prev,
+                    name: profile?.full_name || prev.name,
+                    bio: profile?.bio || "",
+                }))
+            } catch (err) {
+                console.error("Failed to load profile:", err)
+            }
+        }
+
+        hydrate()
+    }, [user?.id, user?.full_name, user?.email, user?.phone])
+
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -38,31 +63,6 @@ export default function EditProfilePage() {
             />
         )
     }
-
-    useEffect(() => {
-        const hydrate = async () => {
-            setFormData((prev) => ({
-                ...prev,
-                name: user?.full_name || "",
-                email: user?.email || "",
-                phone: user?.phone || "",
-            }))
-
-            if (!user?.id) return
-            try {
-                const profile = await marketplaceService.getUserProfile(user.id)
-                setFormData((prev) => ({
-                    ...prev,
-                    name: profile?.full_name || prev.name,
-                    bio: profile?.bio || "",
-                }))
-            } catch (err) {
-                console.error("Failed to load profile:", err)
-            }
-        }
-
-        hydrate()
-    }, [user?.id, user?.full_name, user?.email, user?.phone])
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()

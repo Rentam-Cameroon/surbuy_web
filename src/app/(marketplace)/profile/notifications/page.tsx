@@ -8,15 +8,11 @@ import {
     Bell,
     Smartphone,
     Mail,
-    BadgeCheck,
-    ShieldCheck,
-    SmartphoneIcon,
     Send
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
-import { Separator } from "@/components/ui/separator"
 
 export default function NotificationsPage() {
     const router = useRouter()

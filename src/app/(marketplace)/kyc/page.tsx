@@ -1,17 +1,16 @@
 "use client"
 
-import { useKYCStore, KYCStatus } from "@/store/useKYCStore"
+import { useKYCStore } from "@/store/useKYCStore"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { AnimatePresence, motion } from "framer-motion"
-import { ShieldCheck, UserCheck, FileText, CheckCircle, ArrowLeft, Loader2 } from "lucide-react"
-import { useState, useEffect } from "react"
+import { CheckCircle, ArrowLeft, Loader2 } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import DocumentUpload from "./steps/DocumentUpload"
 import LiveSelfie from "./steps/LiveSelfie"
 import TaxDocument from "./steps/TaxDocument"
 import { authService } from "@/lib/authService"
-import { useAuthStore } from "@/store/useAuthStore"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 
 export default function KYCPage() {
@@ -21,31 +20,25 @@ export default function KYCPage() {
         idBackFile,
         selfieFile,
         taxFile,
-        setKYCData,
-        isFetched,
-        setIdFrontFile,
-        setIdBackFile,
-        setSelfieFile,
-        setTaxFile
+        setKYCData
     } = useKYCStore()
-    const { user } = useAuthStore()
     const [currentStep, setCurrentStep] = useState(1) // 1: ID, 2: Selfie, 3: Tax, 4: Success
     const [isUploading, setIsUploading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const router = useRouter()
 
-    const fetchKYCStatus = async () => {
+    const fetchKYCStatus = useCallback(async () => {
         try {
             const data = await authService.getKYCStatus()
             setKYCData(data)
         } catch (err) {
             console.error("Failed to fetch KYC status:", err)
         }
-    }
+    }, [setKYCData])
 
     useEffect(() => {
         fetchKYCStatus()
-    }, [])
+    }, [fetchKYCStatus])
 
     const fileToBase64 = (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {

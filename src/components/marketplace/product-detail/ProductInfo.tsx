@@ -3,6 +3,7 @@
 import { MapPin, Clock, Share2, Flag, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import ChatAction from "./ChatAction"
+import Image from "next/image"
 
 interface ProductInfoProps {
     title: string
@@ -109,9 +110,9 @@ export default function ProductInfo({
             <div className="pt-4 border-t border-border/50">
                 <h3 className="font-semibold text-lg mb-4">Seller Information</h3>
                 <div className="flex items-center gap-4" onClick={onSellerClick}>
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl overflow-hidden">
+                    <div className="relative w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl overflow-hidden">
                         {seller.avatarUrl ? (
-                            <img src={seller.avatarUrl} alt={seller.name} className="w-full h-full object-cover" />
+                            <Image src={seller.avatarUrl} alt={seller.name} fill className="object-cover" sizes="48px" />
                         ) : (
                             seller.avatar
                         )}

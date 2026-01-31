@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { ArrowLeft, Camera, User } from "lucide-react"
+import Image from "next/image"
 export default function StepProfile() {
     const { bio, setBio, setProfileImage, profileImage, setStep } = useRegistrationStore()
     const [preview, setPreview] = useState<string | null>(profileImage ? URL.createObjectURL(profileImage) : null)
@@ -47,12 +48,16 @@ export default function StepProfile() {
 
             <div className="flex justify-center">
                 <label className="relative cursor-pointer group">
-                    <div className={cn(
-                        "w-32 h-32 rounded-full border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors",
-                        preview ? "border-primary" : "border-muted-foreground/30 bg-muted/30"
-                    )}>
+                    <div
+                        className={cn(
+                            "w-32 h-32 rounded-full border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors",
+                            preview ? "border-primary" : "border-muted-foreground/30 bg-muted/30"
+                        )}
+                    >
                         {preview ? (
-                            <img src={preview} alt="Profile" className="w-full h-full object-cover" />
+                            <div className="relative w-full h-full">
+                                <Image src={preview} alt="Profile" fill className="object-cover" sizes="128px" />
+                            </div>
                         ) : (
                             <User className="h-12 w-12 text-muted-foreground" />
                         )}

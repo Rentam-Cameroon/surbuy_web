@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -8,14 +7,12 @@ import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-i
 import { marketplaceService } from "@/lib/marketplaceService"
 import ListingCard from "@/components/marketplace/ListingCard"
 import { useCachedData } from "@/hooks/useCachedData"
+import Image from "next/image"
 
 export default function SellerProfilePage() {
     const params = useParams()
     const router = useRouter()
     const sellerId = params?.id as string
-    const [seller, setSeller] = useState<any | null>(null)
-    const [products, setProducts] = useState<any[]>([])
-
     const getInitials = (name?: string) => {
         if (!name) return "S"
         return name
@@ -78,14 +75,6 @@ export default function SellerProfilePage() {
         { enabled: !!sellerId }
     )
 
-    useEffect(() => {
-        setSeller(sellerData || null)
-    }, [sellerData])
-
-    useEffect(() => {
-        setProducts(productsData || [])
-    }, [productsData])
-
     const formatDate = (dateString?: string) => {
         if (!dateString) return ""
         const date = new Date(dateString)
@@ -100,7 +89,7 @@ export default function SellerProfilePage() {
         )
     }
 
-    if (!seller) {
+    if (!sellerData) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">
                 Seller not found.
@@ -108,7 +97,7 @@ export default function SellerProfilePage() {
         )
     }
 
-    const badge = getSellerBadge(seller.kyc_status, seller.kyc_tier)
+    const badge = getSellerBadge(sellerData.kyc_status, sellerData.kyc_tier)
 
     return (
         <div className="min-h-screen bg-background pb-24">
@@ -130,46 +119,46 @@ export default function SellerProfilePage() {
 
             <main className="max-w-screen-md mx-auto p-6 space-y-6">
                 <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-2xl overflow-hidden">
-                        {seller.profile_image_url ? (
-                            <img src={seller.profile_image_url} alt={seller.full_name || "Seller"} className="w-full h-full object-cover" />
+                    <div className="relative w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-2xl overflow-hidden">
+                        {sellerData.profile_image_url ? (
+                            <Image src={sellerData.profile_image_url} alt={sellerData.full_name || "Seller"} fill className="object-cover" sizes="64px" />
                         ) : (
-                            getInitials(seller.full_name)
+                            getInitials(sellerData.full_name)
                         )}
                     </div>
                     <div className="space-y-1">
                         <div className="font-bold text-lg flex items-center gap-2">
-                            <span>{seller.full_name || "Seller"}</span>
+                            <span>{sellerData.full_name || "Seller"}</span>
                             {badge.label && <span className={badge.className}>{badge.label}</span>}
                         </div>
-                        {seller.location_city && (
+                        {sellerData.location_city && (
                             <div className="text-sm text-muted-foreground">
-                                {[seller.location_city, seller.neighborhood].filter(Boolean).join(", ")}
+                                {[sellerData.location_city, sellerData.neighborhood].filter(Boolean).join(", ")}
                             </div>
                         )}
-                        {seller.created_at && (
+                        {sellerData.created_at && (
                             <div className="text-xs text-muted-foreground">
-                                Joined {formatDate(seller.created_at)}
+                                Joined {formatDate(sellerData.created_at)}
                             </div>
                         )}
                     </div>
                 </div>
 
-                {seller.bio && (
+                {sellerData.bio && (
                     <div className="text-sm text-muted-foreground">
-                        {seller.bio}
+                        {sellerData.bio}
                     </div>
                 )}
 
-                {(seller.is_phone_verified || seller.is_email_verified) && (
+                {(sellerData.is_phone_verified || sellerData.is_email_verified) && (
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        {seller.is_phone_verified && (
+                        {sellerData.is_phone_verified && (
                             <span className="flex items-center gap-1 text-green-600">
                                 <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
                                 Phone verified
                             </span>
                         )}
-                        {seller.is_email_verified && (
+                        {sellerData.is_email_verified && (
                             <span className="flex items-center gap-1 text-green-600">
                                 <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
                                 Email verified
@@ -184,9 +173,9 @@ export default function SellerProfilePage() {
                         <div className="flex items-center justify-center py-10">
                             <CupertinoActivityIndicator size={28} />
                         </div>
-                    ) : products.length > 0 ? (
+                    ) : (productsData || []).length > 0 ? (
                         <div className="grid grid-cols-2 gap-4">
-                            {products.map((item) => (
+                            {(productsData || []).map((item: any) => (
                                 <ListingCard
                                     key={item.id}
                                     id={item.id}

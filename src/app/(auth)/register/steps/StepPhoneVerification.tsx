@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRegistrationStore } from "@/store/useRegistrationStore"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { useState, useEffect } from "react"
 import { authService } from "@/lib/authService"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"

@@ -13,6 +13,7 @@ import { marketplaceService } from "@/lib/marketplaceService"
 import { useAuthStore } from "@/store/useAuthStore"
 import { getUserIdFromCookie } from "@/lib/auth-utils"
 import { useCachedData } from "@/hooks/useCachedData"
+import Image from "next/image"
 
 export default function Dashboard() {
     const router = useRouter()
@@ -27,7 +28,7 @@ export default function Dashboard() {
             const data = await authService.getUserKYCStatus()
             const isApproved = data.kyc_status === "approved" && (data.kyc_tier ?? 0) >= 1
             router.push(isApproved ? "/sell" : "/kyc")
-        } catch (err) {
+        } catch {
             router.push("/kyc")
         } finally {
             setIsCheckingKyc(false)
@@ -84,7 +85,7 @@ export default function Dashboard() {
                     <div className="flex items-center px-4 justify-between h-10 relative">
                         {/* Logo */}
                         <div className="flex items-center gap-2">
-                            <img src="/icon.svg" alt="Surbuy Logo" className="h-8 w-8" />
+                            <Image src="/icon.svg" alt="Surbuy Logo" width={32} height={32} />
                             <span className="text-xl font-bold tracking-widest text-primary font-mono italic">
                                 SURBUY
                             </span>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Search, X, Clock, TrendingUp, ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
@@ -72,8 +72,10 @@ export default function SearchPage() {
 
         suggestionTimerRef.current = setTimeout(async () => {
             try {
-                const data = await marketplaceService.getSearchSuggestions(keyword)
-                const unique = Array.from(new Set(data)).filter((s) => s.toLowerCase() !== keyword.toLowerCase())
+                const data = (await marketplaceService.getSearchSuggestions(keyword)) as string[]
+                const unique = Array.from(new Set(data))
+                    .filter((s) => typeof s === "string")
+                    .filter((s) => s.toLowerCase() !== keyword.toLowerCase())
                 setSuggestions(unique)
             } catch (err) {
                 console.error("Failed to load suggestions:", err)
@@ -88,14 +90,7 @@ export default function SearchPage() {
         }
     }, [query])
 
-    // Effect to handle filtering and sorting when criteria change
-    useEffect(() => {
-        if (isSearching) {
-            runSearch(query)
-        }
-    }, [selectedCategory, priceRange, location, condition, sortOrder, isSearching, query])
-
-    const runSearch = async (searchTerm: string) => {
+    const runSearch = useCallback(async (searchTerm: string) => {
         const keyword = searchTerm.trim()
         if (keyword.length < 2) return
 
@@ -131,7 +126,10 @@ export default function SearchPage() {
                 const images = Array.isArray(product.product_images) ? product.product_images : []
                 const primaryImage = images
                     .slice()
-                    .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))[0]?.image_url
+                    .sort(
+                        (a: { display_order?: number }, b: { display_order?: number }) =>
+                            (a.display_order ?? 0) - (b.display_order ?? 0)
+                    )[0]?.image_url
                 const locationLabel = [product.location_city, product.neighborhood].filter(Boolean).join(", ")
                 const categoryLabel = product.categories?.name || product.category || product.category_name || product.category_id
                 return {
@@ -150,7 +148,14 @@ export default function SearchPage() {
         } finally {
             setIsSearchingResults(false)
         }
-    }
+    }, [condition, location, priceRange, selectedCategory, sortOrder, userId])
+
+    // Effect to handle filtering and sorting when criteria change
+    useEffect(() => {
+        if (isSearching) {
+            runSearch(query)
+        }
+    }, [selectedCategory, priceRange, location, condition, sortOrder, isSearching, query, runSearch])
 
     const handleSearch = (searchTerm: string) => {
         const keyword = searchTerm.trim()

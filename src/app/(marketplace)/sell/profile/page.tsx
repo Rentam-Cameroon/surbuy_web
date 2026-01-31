@@ -1,7 +1,6 @@
 "use client"
 
 import {
-    User,
     ShieldCheck,
     ChevronRight,
     Bell,
@@ -10,15 +9,13 @@ import {
     Camera,
     Pencil,
     CircleCheck,
-    AlertCircle,
     CreditCard,
     FileCheck,
-    ScanFace,
-    BadgeCheck
+    ScanFace
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import Link from "next/link"
@@ -92,7 +89,7 @@ export default function SellerProfilePage() {
                         <Avatar className="h-28 w-28 border-4 border-background shadow-xl ring-1 ring-border/50">
                             <AvatarImage src={avatarUrl} />
                             <AvatarFallback className="bg-primary/5 text-primary text-3xl font-bold">
-                                {displayName.split(' ').map(n => n[0]).join('')}
+                                {displayName.split(' ').map((n: string) => n[0]).join('')}
                             </AvatarFallback>
                         </Avatar>
                         <button className="absolute bottom-1 right-1 p-2 bg-primary text-white rounded-full shadow-lg hover:scale-110 active:scale-95 transition-transform">

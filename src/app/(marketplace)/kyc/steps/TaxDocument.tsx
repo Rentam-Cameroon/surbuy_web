@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { useKYCStore } from "@/store/useKYCStore"
 import { motion } from "framer-motion"
-import { UploadCloud, FileText, Check, AlertCircle, Info, ArrowRight, Clock, XCircle, ShieldCheck } from "lucide-react"
+import { UploadCloud, Check, Info, Clock, XCircle, ShieldCheck } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"

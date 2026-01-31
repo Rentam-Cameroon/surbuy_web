@@ -62,7 +62,7 @@ export default function SellerRequestsPage() {
                 return
             }
             router.push(`/sell/requests/respond?requestId=${requestId}&responseType=${responseType}`)
-        } catch (err) {
+        } catch {
             setDialogType("kyc")
         } finally {
             setIsCheckingKyc(false)

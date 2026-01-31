@@ -6,7 +6,7 @@ import SplashScreen from "@/components/pwa/SplashScreen"
 
 export default function RootPage() {
   const router = useRouter()
-  const [showSplash, setShowSplash] = useState(true)
+  const [showSplash] = useState(true)
 
   useEffect(() => {
     // Simulate Splash Screen delay and check onboarding status
