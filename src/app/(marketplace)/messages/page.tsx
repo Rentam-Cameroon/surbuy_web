@@ -14,10 +14,28 @@ import { useAuthStore } from "@/store/useAuthStore"
 import { chatService } from "@/lib/chatService"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import { useCachedData } from "@/hooks/useCachedData"
+import AuthRequiredState from "@/components/common/AuthRequiredState"
 
 export default function MessagesListPage() {
     const [searchQuery, setSearchQuery] = useState("")
-    const { user } = useAuthStore()
+    const { user, isLoading } = useAuthStore()
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <CupertinoActivityIndicator size={28} />
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <AuthRequiredState
+                title="Login Required"
+                description="Login to view your conversations."
+            />
+        )
+    }
 
     const { data: conversationsData, isLoading: isLoadingConversations } = useCachedData(
         `conversations:marketplace:${user?.id || "anon"}`,

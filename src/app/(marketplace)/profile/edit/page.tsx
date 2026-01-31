@@ -9,16 +9,35 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuthStore } from "@/store/useAuthStore"
 import { marketplaceService } from "@/lib/marketplaceService"
+import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
+import AuthRequiredState from "@/components/common/AuthRequiredState"
 
 export default function EditProfilePage() {
     const router = useRouter()
-    const { user } = useAuthStore()
+    const { user, isLoading } = useAuthStore()
     const [formData, setFormData] = useState({
         name: "",
         email: "",
         phone: "",
         bio: "",
     })
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <CupertinoActivityIndicator size={28} />
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <AuthRequiredState
+                title="Login Required"
+                description="Login to edit your profile."
+            />
+        )
+    }
 
     useEffect(() => {
         const hydrate = async () => {

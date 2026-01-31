@@ -21,12 +21,13 @@ import { marketplaceService } from "@/lib/marketplaceService"
 import { useAuthStore } from "@/store/useAuthStore"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import { supabase } from "@/lib/supabase"
+import AuthRequiredState from "@/components/common/AuthRequiredState"
 
 export default function ChatDetailPage() {
     const params = useParams()
     const router = useRouter()
     const scrollRef = useRef<HTMLDivElement>(null)
-    const { user } = useAuthStore()
+    const { user, isLoading: isAuthLoading } = useAuthStore()
 
     const convId = params.id as string
     const [conversation, setConversation] = useState<any | null>(null)
@@ -35,6 +36,23 @@ export default function ChatDetailPage() {
     const [messages, setMessages] = useState<any[]>([])
     const [newMessage, setNewMessage] = useState("")
     const [isLoading, setIsLoading] = useState(true)
+
+    if (isAuthLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <CupertinoActivityIndicator size={28} />
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <AuthRequiredState
+                title="Login Required"
+                description="Login to view this conversation."
+            />
+        )
+    }
 
     useEffect(() => {
         if (scrollRef.current) {

@@ -15,10 +15,31 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { useAuthStore } from "@/store/useAuthStore"
+import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
+import AuthRequiredState from "@/components/common/AuthRequiredState"
 
 export default function SecurityPage() {
     const router = useRouter()
     const [showPass, setShowPass] = useState(false)
+    const { user, isLoading } = useAuthStore()
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <CupertinoActivityIndicator size={28} />
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <AuthRequiredState
+                title="Login Required"
+                description="Login to manage your security settings."
+            />
+        )
+    }
 
     return (
         <div className="pb-20 pt-6 min-h-screen bg-background">

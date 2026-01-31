@@ -45,6 +45,7 @@ export default function OnboardingPage() {
 
     const completeOnboarding = () => {
         localStorage.setItem("hasSeenOnboarding", "true")
+        localStorage.setItem("hasLaunchedOnceAfterOnboarding", "false")
         router.push("/register")
     }
 

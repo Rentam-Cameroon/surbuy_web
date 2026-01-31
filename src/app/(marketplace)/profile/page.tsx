@@ -23,12 +23,29 @@ import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import Link from "next/link"
 import { useAuthStore } from "@/store/useAuthStore"
 import { useRouter } from "next/navigation"
+import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
+import AuthRequiredState from "@/components/common/AuthRequiredState"
 
 export default function ProfilePage() {
-    const { user, logout } = useAuthStore()
+    const { user, logout, isLoading } = useAuthStore()
     const router = useRouter()
 
-    if (!user) return null
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <CupertinoActivityIndicator size={28} />
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <AuthRequiredState
+                title="Login Required"
+                description="Login to view your profile."
+            />
+        )
+    }
 
     const handleLogout = () => {
         logout()

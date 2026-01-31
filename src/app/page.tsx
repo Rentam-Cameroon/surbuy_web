@@ -12,9 +12,15 @@ export default function RootPage() {
     // Simulate Splash Screen delay and check onboarding status
     const timer = setTimeout(() => {
       const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding")
+      const launchedOnce = localStorage.getItem("hasLaunchedOnceAfterOnboarding")
 
       if (hasSeenOnboarding === "true") {
-        router.push("/register") // Or login, per user request "go to signup"
+        if (launchedOnce === "true") {
+          router.push("/marketplace")
+        } else {
+          localStorage.setItem("hasLaunchedOnceAfterOnboarding", "true")
+          router.push("/register")
+        }
       } else {
         router.push("/onboarding")
       }
