@@ -13,6 +13,7 @@ import { chatService } from "@/lib/chatService"
 import { useAuthStore } from "@/store/useAuthStore"
 import { getUserIdFromCookie } from "@/lib/auth-utils"
 import { useCachedData } from "@/hooks/useCachedData"
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function ProductDetailPage() {
     const params = useParams()
@@ -24,6 +25,7 @@ export default function ProductDetailPage() {
     const [isCheckingConversation, setIsCheckingConversation] = useState(true)
     const { user } = useAuthStore()
     const userId = user?.id || getUserIdFromCookie()
+    const { t } = useI18n()
 
     const formatDate = (dateString?: string) => {
         if (!dateString) return ""
@@ -150,7 +152,7 @@ export default function ProductDetailPage() {
                     onClick={() => router.back()}
                 >
                     <ArrowLeft className="w-5 h-5" />
-                    Back
+                    {t("Back")}
                 </Button>
                 <div className="flex items-center justify-center py-16">
                     <CupertinoActivityIndicator size={32} />
@@ -168,9 +170,9 @@ export default function ProductDetailPage() {
                     onClick={() => router.back()}
                 >
                     <ArrowLeft className="w-5 h-5" />
-                    Back
+                    {t("Back")}
                 </Button>
-                <div className="py-20 text-center text-muted-foreground">Product not found.</div>
+                <div className="py-20 text-center text-muted-foreground">{t("Product not found.")}</div>
             </div>
         )
     }
@@ -185,7 +187,7 @@ export default function ProductDetailPage() {
                     onClick={() => router.back()}
                 >
                     <ArrowLeft className="w-5 h-5" />
-                    Back
+                    {t("Back")}
                 </Button>
             </div>
 

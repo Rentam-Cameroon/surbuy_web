@@ -4,6 +4,7 @@ import { MapPin, Clock, Share2, Flag, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import ChatAction from "./ChatAction"
 import Image from "next/image"
+import { useI18n } from "@/contexts/I18nContext"
 
 interface ProductInfoProps {
     title: string
@@ -42,6 +43,7 @@ export default function ProductInfo({
     seller,
     onSellerClick
 }: ProductInfoProps) {
+    const { t } = useI18n()
     const resolvedPrice = typeof price === "string" ? Number(price) : price
 
     return (
@@ -100,7 +102,7 @@ export default function ProductInfo({
 
             {/* Description */}
             <div className="space-y-2">
-                <h3 className="font-semibold text-lg">Description</h3>
+                <h3 className="font-semibold text-lg">{t("Description")}</h3>
                 <p className="text-muted-foreground whitespace-pre-line leading-relaxed">
                     {description}
                 </p>
@@ -108,7 +110,7 @@ export default function ProductInfo({
 
             {/* Seller Info */}
             <div className="pt-4 border-t border-border/50">
-                <h3 className="font-semibold text-lg mb-4">Seller Information</h3>
+                <h3 className="font-semibold text-lg mb-4">{t("Seller Information")}</h3>
                 <div className="flex items-center gap-4" onClick={onSellerClick}>
                     <div className="relative w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl overflow-hidden">
                         {seller.avatarUrl ? (
@@ -126,19 +128,19 @@ export default function ProductInfo({
                                 </span>
                             )}
                         </div>
-                        <div className="text-sm text-muted-foreground">Joined {seller.joinedDate}</div>
+                        <div className="text-sm text-muted-foreground">{t("Joined")} {seller.joinedDate}</div>
                     </div>
                 </div>
                 <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground bg-secondary/30 p-3 rounded-lg">
                     <ShieldCheck className="w-4 h-4 text-green-600" />
-                    <span>Identity Verified</span>
+                    <span>{t("Identity Verified")}</span>
                 </div>
             </div>
 
             <div className="pt-4">
                 <Button variant="ghost" className="w-full text-muted-foreground hover:text-red-500 gap-2">
                     <Flag className="w-4 h-4" />
-                    Report this listing
+                    {t("Report this listing")}
                 </Button>
             </div>
         </div>

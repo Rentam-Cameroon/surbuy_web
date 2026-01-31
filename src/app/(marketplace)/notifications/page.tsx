@@ -16,16 +16,18 @@ import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import Link from "next/link"
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function NotificationsPage() {
     const router = useRouter()
+    const { t } = useI18n()
     const [notifications] = useState([
         {
             id: 1,
             type: "message",
-            title: "New Message",
-            description: "Sarah Kang sent you a message about the iPhone 15 Pro Max.",
-            time: "2 mins ago",
+            title: t("New Message"),
+            description: t("Sarah Kang sent you a message about the iPhone 15 Pro Max."),
+            time: t("2 mins ago"),
             isRead: false,
             icon: MessageSquare,
             iconColor: "text-blue-500",
@@ -34,9 +36,9 @@ export default function NotificationsPage() {
         {
             id: 2,
             type: "system",
-            title: "Price Drop Alert",
-            description: "An item in your wishlist has dropped in price!",
-            time: "1 hour ago",
+            title: t("Price Drop Alert"),
+            description: t("An item in your wishlist has dropped in price!"),
+            time: t("1 hour ago"),
             isRead: false,
             icon: ShoppingBag,
             iconColor: "text-orange-500",
@@ -45,9 +47,9 @@ export default function NotificationsPage() {
         {
             id: 3,
             type: "verification",
-            title: "Account Verified",
-            description: "Congratulations! Your email address has been successfully verified.",
-            time: "5 hours ago",
+            title: t("Account Verified"),
+            description: t("Congratulations! Your email address has been successfully verified."),
+            time: t("5 hours ago"),
             isRead: true,
             icon: BadgeCheck,
             iconColor: "text-green-500",
@@ -56,9 +58,9 @@ export default function NotificationsPage() {
         {
             id: 4,
             type: "promotion",
-            title: "Weekend Deals",
-            description: "Check out the top trending items this weekend in Douala.",
-            time: "1 day ago",
+            title: t("Weekend Deals"),
+            description: t("Check out the top trending items this weekend in Douala."),
+            time: t("1 day ago"),
             isRead: true,
             icon: Star,
             iconColor: "text-purple-500",
@@ -75,7 +77,7 @@ export default function NotificationsPage() {
                         <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
-                        <h1 className="text-xl font-bold tracking-tight">Notifications</h1>
+                        <h1 className="text-xl font-bold tracking-tight">{t("Notifications")}</h1>
                     </div>
                     <Link href="/profile/notifications">
                         <Button variant="ghost" size="icon" className="rounded-full">
@@ -128,8 +130,8 @@ export default function NotificationsPage() {
                             <Bell className="h-10 w-10 text-muted-foreground/40" />
                         </div>
                         <div className="space-y-1">
-                            <h3 className="text-lg font-bold">All caught up!</h3>
-                            <p className="text-muted-foreground text-sm">No new notifications at the moment.</p>
+                            <h3 className="text-lg font-bold">{t("All caught up!")}</h3>
+                            <p className="text-muted-foreground text-sm">{t("No new notifications at the moment.")}</p>
                         </div>
                     </div>
                 )}

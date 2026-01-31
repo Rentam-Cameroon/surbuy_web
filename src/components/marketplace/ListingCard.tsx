@@ -53,7 +53,7 @@ export default function ListingCard({ id = "1", title, price, location, image, c
                         <Button
                             size="icon"
                             variant="secondary"
-                            className="h-8 w-8 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white hover:text-red-500"
+                            className="h-8 w-8 rounded-full bg-white/90 backdrop-blur-sm text-foreground hover:bg-white hover:text-red-500 shadow-sm"
                             onClick={(e) => {
                                 e.preventDefault() // Prevent navigation when clicking heart
                                 e.stopPropagation()

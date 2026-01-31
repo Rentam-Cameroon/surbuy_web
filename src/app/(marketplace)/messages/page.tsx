@@ -14,10 +14,12 @@ import { chatService } from "@/lib/chatService"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import { useCachedData } from "@/hooks/useCachedData"
 import AuthRequiredState from "@/components/common/AuthRequiredState"
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function MessagesListPage() {
     const [searchQuery, setSearchQuery] = useState("")
     const { user, isLoading } = useAuthStore()
+    const { t } = useI18n()
 
     const { data: conversationsData, isLoading: isLoadingConversations } = useCachedData(
         `conversations:marketplace:${user?.id || "anon"}`,
@@ -45,7 +47,7 @@ export default function MessagesListPage() {
                             created_at: "",
                             is_read: true,
                             sender_id: "",
-                            text: "No messages yet"
+                            text: t("No messages yet")
                         }
 
                     return {
@@ -102,7 +104,7 @@ export default function MessagesListPage() {
             {/* Header */}
             <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/40 px-6 py-4">
                 <div className="flex items-center justify-between mb-4">
-                    <h1 className="text-2xl font-bold tracking-tight">Messages</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">{t("Messages")}</h1>
                 </div>
 
                 <div className="relative group">
@@ -110,7 +112,7 @@ export default function MessagesListPage() {
                         <SearchIcon className="h-4 w-4" />
                     </div>
                     <Input
-                        placeholder="Search conversations..."
+                        placeholder={t("Search conversations...")}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full bg-muted/50 border-none rounded-full pl-10 h-10 transition-all font-medium"

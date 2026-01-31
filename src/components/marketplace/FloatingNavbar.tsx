@@ -3,23 +3,25 @@
 import { Home, Search, FilePlus, User, MessageSquare } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function FloatingNavbar() {
     const router = useRouter()
     const pathname = usePathname()
     const isSeller = pathname?.startsWith('/sell')
+    const { t } = useI18n()
 
     const navItems = isSeller ? [
-        { icon: Home, label: "Home", path: "/sell" },
-        { icon: FilePlus, label: "Request", path: "/sell/requests" },
-        { icon: MessageSquare, label: "Messages", path: "/sell/messages" },
-        { icon: User, label: "Profile", path: "/sell/profile" },
+        { icon: Home, label: t("Home"), path: "/sell" },
+        { icon: FilePlus, label: t("Request"), path: "/sell/requests" },
+        { icon: MessageSquare, label: t("Messages"), path: "/sell/messages" },
+        { icon: User, label: t("Profile"), path: "/sell/profile" },
     ] : [
-        { icon: Home, label: "Home", path: "/marketplace" },
-        { icon: FilePlus, label: "Request", path: "/request" },
-        { icon: Search, label: "Search", path: "/search" },
-        { icon: MessageSquare, label: "Messages", path: "/messages" },
-        { icon: User, label: "Profile", path: "/profile" },
+        { icon: Home, label: t("Home"), path: "/marketplace" },
+        { icon: FilePlus, label: t("Request"), path: "/request" },
+        { icon: Search, label: t("Search"), path: "/search" },
+        { icon: MessageSquare, label: t("Messages"), path: "/messages" },
+        { icon: User, label: t("Profile"), path: "/profile" },
     ]
 
     return (

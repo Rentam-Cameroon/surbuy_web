@@ -1,6 +1,7 @@
 import { useKYCStore } from "@/store/useKYCStore"
 import { motion } from "framer-motion"
 import { UploadCloud, Check, ShieldCheck, Clock, XCircle } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 
 export default function DocumentUpload() {
@@ -43,7 +44,7 @@ export default function DocumentUpload() {
         }
     }
 
-    const renderUploadZone = (type: 'front' | 'back', file: File | null, status: string) => {
+    const renderUploadZone = (type: 'front' | 'back', file: File | null, status: string, reason?: string) => {
         const isSubmitted = status === 'approved' || status === 'pending'
 
         return (

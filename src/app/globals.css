@@ -11,6 +11,7 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/geist/v4/gyBhhwUxId8gMGYQMKR3pzfaWI_RnOI4nQ.ttf) format("truetype");
 }
+
 @font-face {
   font-family: "Geist";
   font-style: normal;
@@ -18,6 +19,7 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/geist/v4/gyBhhwUxId8gMGYQMKR3pzfaWI_RHOM4nQ.ttf) format("truetype");
 }
+
 @font-face {
   font-family: "Geist";
   font-style: normal;
@@ -25,6 +27,7 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/geist/v4/gyBhhwUxId8gMGYQMKR3pzfaWI_RwuM4nQ.ttf) format("truetype");
 }
+
 @font-face {
   font-family: "Geist";
   font-style: normal;
@@ -32,6 +35,7 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/geist/v4/gyBhhwUxId8gMGYQMKR3pzfaWI_RnOM4nQ.ttf) format("truetype");
 }
+
 @font-face {
   font-family: "Geist";
   font-style: normal;
@@ -39,6 +43,7 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/geist/v4/gyBhhwUxId8gMGYQMKR3pzfaWI_RruM4nQ.ttf) format("truetype");
 }
+
 @font-face {
   font-family: "Geist";
   font-style: normal;
@@ -46,6 +51,7 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/geist/v4/gyBhhwUxId8gMGYQMKR3pzfaWI_RQuQ4nQ.ttf) format("truetype");
 }
+
 @font-face {
   font-family: "Geist";
   font-style: normal;
@@ -53,6 +59,7 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/geist/v4/gyBhhwUxId8gMGYQMKR3pzfaWI_Re-Q4nQ.ttf) format("truetype");
 }
+
 @font-face {
   font-family: "Geist";
   font-style: normal;
@@ -60,6 +67,7 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/geist/v4/gyBhhwUxId8gMGYQMKR3pzfaWI_RHOQ4nQ.ttf) format("truetype");
 }
+
 @font-face {
   font-family: "Geist";
   font-style: normal;
@@ -75,6 +83,7 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/geistmono/v4/or3yQ6H-1_WfwkMZI_qYPLs1a-t7PU0AbeE9KZ5T.ttf) format("truetype");
 }
+
 @font-face {
   font-family: "Geist Mono";
   font-style: normal;
@@ -82,6 +91,7 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/geistmono/v4/or3yQ6H-1_WfwkMZI_qYPLs1a-t7PU0AbeG9KJ5T.ttf) format("truetype");
 }
+
 @font-face {
   font-family: "Geist Mono";
   font-style: normal;
@@ -89,6 +99,7 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/geistmono/v4/or3yQ6H-1_WfwkMZI_qYPLs1a-t7PU0AbeFjKJ5T.ttf) format("truetype");
 }
+
 @font-face {
   font-family: "Geist Mono";
   font-style: normal;
@@ -96,6 +107,7 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/geistmono/v4/or3yQ6H-1_WfwkMZI_qYPLs1a-t7PU0AbeE9KJ5T.ttf) format("truetype");
 }
+
 @font-face {
   font-family: "Geist Mono";
   font-style: normal;
@@ -103,6 +115,7 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/geistmono/v4/or3yQ6H-1_WfwkMZI_qYPLs1a-t7PU0AbeEPKJ5T.ttf) format("truetype");
 }
+
 @font-face {
   font-family: "Geist Mono";
   font-style: normal;
@@ -110,6 +123,7 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/geistmono/v4/or3yQ6H-1_WfwkMZI_qYPLs1a-t7PU0AbeHjL55T.ttf) format("truetype");
 }
+
 @font-face {
   font-family: "Geist Mono";
   font-style: normal;
@@ -117,6 +131,7 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/geistmono/v4/or3yQ6H-1_WfwkMZI_qYPLs1a-t7PU0AbeHaL55T.ttf) format("truetype");
 }
+
 @font-face {
   font-family: "Geist Mono";
   font-style: normal;
@@ -124,6 +139,7 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/geistmono/v4/or3yQ6H-1_WfwkMZI_qYPLs1a-t7PU0AbeG9L55T.ttf) format("truetype");
 }
+
 @font-face {
   font-family: "Geist Mono";
   font-style: normal;
@@ -181,30 +197,6 @@
   color-scheme: dark;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: 240 10% 5.5%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 7%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 7%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 260 84% 60%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 115 55% 42%;
-    --secondary-foreground: 0 0% 98%;
-    --accent: 45 90% 50%;
-    --accent-foreground: 240 10% 3.9%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 260 84% 60%;
-    color-scheme: dark;
-  }
-}
 
 @theme inline {
   --color-background: hsl(var(--background));
@@ -232,7 +224,7 @@
 }
 
 body {
-  @apply bg-background text-foreground;
+  @apply bg-background text-foreground transition-colors duration-300;
   font-family: var(--font-sans, system-ui, sans-serif);
 }
 
@@ -240,19 +232,19 @@ body {
   display: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  .logo-dark {
-    display: block;
-  }
-  .logo-light {
-    display: none;
-  }
+.dark .logo-dark {
+  display: block;
+}
+
+.dark .logo-light {
+  display: none;
 }
 
 /* Glassmorphism utilities */
 .glass {
   @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl;
 }
+
 .dark .glass {
   @apply bg-black/30 border-white/10;
 }

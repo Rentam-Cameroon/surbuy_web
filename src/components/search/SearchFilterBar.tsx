@@ -12,6 +12,7 @@ import {
     DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
+import { useI18n } from "@/contexts/I18nContext"
 
 interface FilterProps {
     selectedCategory: string
@@ -43,6 +44,7 @@ export default function SearchFilterBar({
     condition,
     setCondition
 }: FilterProps) {
+    const { t } = useI18n()
     return (
         <div className="w-full bg-background border-b border-border/40 overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto no-scrollbar scroll-smooth">
@@ -51,17 +53,17 @@ export default function SearchFilterBar({
                     <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm" className="rounded-full h-9 gap-2 shrink-0 border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all">
                             <ArrowUpDown className="w-3.5 h-3.5" />
-                            <span className="text-xs font-semibold">Sort</span>
+                            <span className="text-xs font-semibold">{t("Sort")}</span>
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-48 rounded-xl shadow-xl border-border/40">
-                        <DropdownMenuLabel className="text-xs">Sort By</DropdownMenuLabel>
+                        <DropdownMenuLabel className="text-xs">{t("Sort By")}</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuRadioGroup value={sortOrder} onValueChange={setSortOrder}>
-                            <DropdownMenuRadioItem value="newest" className="text-sm">Newest First</DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="oldest" className="text-sm">Oldest First</DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="price-low" className="text-sm">Lowest Price</DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="price-high" className="text-sm">Highest Price</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="newest" className="text-sm">{t("Newest First")}</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="oldest" className="text-sm">{t("Oldest First")}</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="price-low" className="text-sm">{t("Lowest Price")}</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="price-high" className="text-sm">{t("Highest Price")}</DropdownMenuRadioItem>
                         </DropdownMenuRadioGroup>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -70,7 +72,7 @@ export default function SearchFilterBar({
 
                 {/* Category Filter */}
                 <FilterDropdown
-                    label="Category"
+                    label={t("Category")}
                     value={selectedCategory}
                     options={CATEGORIES}
                     onChange={setCategory}
@@ -78,7 +80,7 @@ export default function SearchFilterBar({
 
                 {/* Price Filter */}
                 <FilterDropdown
-                    label="Price"
+                    label={t("Price")}
                     value={priceRange}
                     options={PRICES}
                     onChange={setPriceRange}
@@ -86,7 +88,7 @@ export default function SearchFilterBar({
 
                 {/* Location Filter */}
                 <FilterDropdown
-                    label="Location"
+                    label={t("Location")}
                     value={location}
                     options={LOCATIONS}
                     onChange={setLocation}
@@ -94,7 +96,7 @@ export default function SearchFilterBar({
 
                 {/* Condition Filter */}
                 <FilterDropdown
-                    label="Condition"
+                    label={t("Condition")}
                     value={condition}
                     options={CONDITIONS}
                     onChange={setCondition}
@@ -105,6 +107,7 @@ export default function SearchFilterBar({
 }
 
 function FilterDropdown({ label, value, options, onChange }: { label: string, value: string, options: string[], onChange: (v: string) => void }) {
+    const { t } = useI18n()
     const isActive = value !== options[0] && value !== "Any" && value !== "Anywhere" && value !== "Any Price"
 
     return (
@@ -118,7 +121,7 @@ function FilterDropdown({ label, value, options, onChange }: { label: string, va
                         isActive && "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
                     )}
                 >
-                    {isActive ? value : label}
+                    {isActive ? t(value) : label}
                     <ChevronDown className={cn("w-3.5 h-3.5 opacity-60 transition-transform", isActive && "text-primary opacity-100")} />
                 </Button>
             </DropdownMenuTrigger>
@@ -128,7 +131,7 @@ function FilterDropdown({ label, value, options, onChange }: { label: string, va
                 <DropdownMenuRadioGroup value={value} onValueChange={onChange}>
                     {options.map((opt) => (
                         <DropdownMenuRadioItem key={opt} value={opt} className="text-sm">
-                            {opt}
+                            {t(opt)}
                         </DropdownMenuRadioItem>
                     ))}
                 </DropdownMenuRadioGroup>

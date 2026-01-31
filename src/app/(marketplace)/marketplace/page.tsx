@@ -14,12 +14,14 @@ import { useAuthStore } from "@/store/useAuthStore"
 import { getUserIdFromCookie } from "@/lib/auth-utils"
 import { useCachedData } from "@/hooks/useCachedData"
 import Image from "next/image"
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function Dashboard() {
     const router = useRouter()
     const { user } = useAuthStore()
     const userId = user?.id || getUserIdFromCookie()
     const [isCheckingKyc, setIsCheckingKyc] = useState(false)
+    const { t } = useI18n()
 
     const handleSellClick = async () => {
         if (isCheckingKyc) return
@@ -85,8 +87,8 @@ export default function Dashboard() {
                     <div className="flex items-center px-4 justify-between h-10 relative">
                         {/* Logo */}
                         <div className="flex items-center gap-2">
-                            <Image src="/surbuy-logo.png" alt="Surbuy Logo" width={128} height={32} className="logo-light" />
-                            <Image src="/surbuy-logo-dark.png" alt="Surbuy Logo" width={128} height={32} className="logo-dark" />
+                            <Image src="/surbuy-logo.png" alt="Surbuy Logo" width={128} height={32} className="logo-light" style={{ height: "auto" }} priority />
+                            <Image src="/surbuy-logo-dark.png" alt="Surbuy Logo" width={128} height={32} className="logo-dark" style={{ height: "auto" }} priority />
                         </div>
 
                         {/* Right Actions */}
@@ -97,7 +99,7 @@ export default function Dashboard() {
                                 className="rounded-full h-9 px-5 font-bold shadow-lg shadow-primary/20 gap-1.5 active:scale-95 transition-all"
                             >
                                 <Plus className="w-4 h-4" />
-                                Sell
+                                {t("Sell")}
                             </Button>
                             <Link href="/notifications">
                                 <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 text-muted-foreground relative">
@@ -116,19 +118,19 @@ export default function Dashboard() {
             {/* Main Content */}
             <main className="container mx-auto px-4 py-6 space-y-10">
                 <ProductSection
-                    title="Newly Added"
+                    title={t("Newly Added")}
                     listings={newListingsData || []}
                     isLoading={isLoadingNew}
                     href="/view-all?title=Newly%20Added&type=new"
                 />
                 <ProductSection
-                    title="Popular"
+                    title={t("Popular")}
                     listings={popularListingsData || []}
                     isLoading={isLoadingPopular}
                     href="/view-all?title=Popular&type=popular"
                 />
                 <ProductSection
-                    title="Recommended for you"
+                    title={t("Recommended for you")}
                     listings={recommendedListingsData || []}
                     isLoading={isLoadingRecommended}
                     href="/view-all?title=Recommended&type=recommended"
