@@ -13,9 +13,15 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
+import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
+import { useAuthStore } from "@/store/useAuthStore"
+import AuthRequiredState from "@/components/common/AuthRequiredState"
+import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 
 export default function NotificationsPage() {
     const router = useRouter()
+    const { user, isLoading } = useAuthStore()
+
     const [prefs, setPrefs] = useState({
         sms_new_message: true,
         sms_request_response: true,
@@ -35,6 +41,26 @@ export default function NotificationsPage() {
         telegram_kyc_update: true,
         email_enabled: false,
     })
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <CupertinoActivityIndicator size={28} />
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <>
+                <AuthRequiredState
+                    title="Login Required"
+                    description="Login to manage notification settings."
+                />
+                <FloatingNavbar />
+            </>
+        )
+    }
 
     const toggle = (key: keyof typeof prefs) => {
         setPrefs(prev => ({ ...prev, [key]: !prev[key] }))
@@ -158,6 +184,7 @@ export default function NotificationsPage() {
                     </Button>
                 </div>
             </div>
+            <FloatingNavbar />
         </div>
     )
 }

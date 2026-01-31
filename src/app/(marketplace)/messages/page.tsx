@@ -92,10 +92,13 @@ export default function MessagesListPage() {
 
     if (!user) {
         return (
-            <AuthRequiredState
-                title="Login Required"
-                description="Login to view your conversations."
-            />
+            <>
+                <AuthRequiredState
+                    title="Login Required"
+                    description="Login to view your conversations."
+                />
+                <FloatingNavbar />
+            </>
         )
     }
 

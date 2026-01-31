@@ -22,6 +22,11 @@ export function useCachedData<T>(
     })
     const [isLoading, setIsLoading] = useState<boolean>(() => !getEntry(key))
     const inFlightRef = useRef(false)
+    const fetcherRef = useRef(fetcher)
+
+    useEffect(() => {
+        fetcherRef.current = fetcher
+    }, [fetcher])
 
     const isStale = useMemo(() => {
         const entry = getEntry(key)
@@ -43,9 +48,14 @@ export function useCachedData<T>(
             if (inFlightRef.current) return
             inFlightRef.current = true
             try {
-                const result = await fetcher()
+                const result = await fetcherRef.current()
                 setEntry(key, result)
                 setData(result)
+            } catch (error) {
+                console.error(`[useCachedData] Error fetching key ${key}:`, error)
+                // Cache the failure (by ensuring an entry exists with current timestamp) to prevent immediate retry
+                const currentEntry = getEntry(key)
+                setEntry(key, currentEntry ? currentEntry.data : null)
             } finally {
                 inFlightRef.current = false
                 setIsLoading(false)
@@ -55,7 +65,7 @@ export function useCachedData<T>(
         if (!entry || isStale) {
             load()
         }
-    }, [enabled, fetcher, getEntry, isStale, key, setEntry])
+    }, [enabled, getEntry, isStale, key, setEntry]) // Removed fetcher from dependencies
 
     const refresh = async () => {
         if (!enabled || inFlightRef.current) return

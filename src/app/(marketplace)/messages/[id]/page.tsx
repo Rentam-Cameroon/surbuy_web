@@ -22,6 +22,7 @@ import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-i
 import { supabase } from "@/lib/supabase"
 import AuthRequiredState from "@/components/common/AuthRequiredState"
 import { useI18n } from "@/contexts/I18nContext"
+import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 
 export default function ChatDetailPage() {
     const params = useParams()
@@ -147,7 +148,7 @@ export default function ChatDetailPage() {
 
     useEffect(() => {
         if (convId && user?.id) {
-            chatService.markRead(convId).catch(() => {})
+            chatService.markRead(convId).catch(() => { })
         }
     }, [convId, user?.id])
 
@@ -161,10 +162,13 @@ export default function ChatDetailPage() {
 
     if (!user) {
         return (
-            <AuthRequiredState
-                title="Login Required"
-                description="Login to view this conversation."
-            />
+            <>
+                <AuthRequiredState
+                    title="Login Required"
+                    description="Login to view this conversation."
+                />
+                <FloatingNavbar />
+            </>
         )
     }
 

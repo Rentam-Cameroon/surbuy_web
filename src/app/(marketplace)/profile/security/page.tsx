@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label"
 import { useAuthStore } from "@/store/useAuthStore"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import AuthRequiredState from "@/components/common/AuthRequiredState"
+import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 
 export default function SecurityPage() {
     const router = useRouter()
@@ -33,10 +34,13 @@ export default function SecurityPage() {
 
     if (!user) {
         return (
-            <AuthRequiredState
-                title="Login Required"
-                description="Login to manage your security settings."
-            />
+            <>
+                <AuthRequiredState
+                    title="Login Required"
+                    description="Login to manage your security settings."
+                />
+                <FloatingNavbar />
+            </>
         )
     }
 

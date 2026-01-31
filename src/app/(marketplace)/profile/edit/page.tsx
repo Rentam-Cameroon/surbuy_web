@@ -11,6 +11,7 @@ import { useAuthStore } from "@/store/useAuthStore"
 import { marketplaceService } from "@/lib/marketplaceService"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import AuthRequiredState from "@/components/common/AuthRequiredState"
+import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 
 export default function EditProfilePage() {
     const router = useRouter()
@@ -57,10 +58,13 @@ export default function EditProfilePage() {
 
     if (!user) {
         return (
-            <AuthRequiredState
-                title="Login Required"
-                description="Login to edit your profile."
-            />
+            <>
+                <AuthRequiredState
+                    title="Login Required"
+                    description="Login to edit your profile."
+                />
+                <FloatingNavbar />
+            </>
         )
     }
 

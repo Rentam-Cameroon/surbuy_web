@@ -25,6 +25,7 @@ export default function KYCOverlay() {
             console.error("Failed to check KYC status:", err)
         } finally {
             setIsRefreshing(false)
+            setIsFetched(true)
         }
     }
 

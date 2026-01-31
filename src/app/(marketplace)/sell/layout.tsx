@@ -4,6 +4,7 @@ import KYCOverlay from "@/components/marketplace/KYCOverlay"
 import { useAuthStore } from "@/store/useAuthStore"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import AuthRequiredState from "@/components/common/AuthRequiredState"
+import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 
 export default function SellLayout({
     children,
@@ -22,10 +23,13 @@ export default function SellLayout({
 
     if (!isAuthenticated) {
         return (
-            <AuthRequiredState
-                title="Login Required"
-                description="You need to login to access the sell section."
-            />
+            <>
+                <AuthRequiredState
+                    title="Login Required"
+                    description="You need to login to access the sell section."
+                />
+                <FloatingNavbar />
+            </>
         )
     }
 

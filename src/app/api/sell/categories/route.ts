@@ -6,6 +6,11 @@ export async function POST(request: Request) {
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
         const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+        if (!supabaseUrl || !anonKey) {
+            console.error('Missing Supabase environment variables')
+            return NextResponse.json({ error: 'Server configuration error: Missing environment variables' }, { status: 500 })
+        }
+
         const response = await fetch(`${supabaseUrl}/functions/v1/categories`, {
             method: 'POST',
             headers: {

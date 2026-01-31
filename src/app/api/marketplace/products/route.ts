@@ -5,6 +5,10 @@ export async function POST(req: Request) {
         const body = await req.json()
 
         const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        if (!anonKey) {
+            return NextResponse.json({ error: 'Server configuration error: Missing anon key' }, { status: 500 })
+        }
+
         const PRODUCT_SEARCH_URL = "https://izcnepuykfwfrusrooen.supabase.co/functions/v1/product-and-search"
 
         const response = await fetch(PRODUCT_SEARCH_URL, {

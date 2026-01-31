@@ -151,7 +151,10 @@ export default function StepEmailVerification() {
                             />
                         </div>
 
-                        <div className="flex justify-center">
+                        <div className="flex gap-3 justify-center">
+                            <Button variant="outline" className="min-w-[100px] h-12 rounded-xl" size="lg" onClick={() => setStep(5)} disabled={isLoading}>
+                                Skip
+                            </Button>
                             <Button className="min-w-[200px] h-12 rounded-xl font-bold" size="lg" onClick={handleVerify} disabled={isLoading}>
                                 {isLoading ? <CupertinoActivityIndicator size={20} color="white" /> : "Verify & Finish"}
                             </Button>
