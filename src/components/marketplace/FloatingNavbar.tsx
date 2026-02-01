@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, Search, FilePlus, User, MessageSquare } from "lucide-react"
+import { Home, FilePlus, User, MessageSquare } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useI18n } from "@/contexts/I18nContext"
@@ -19,7 +19,6 @@ export default function FloatingNavbar() {
     ] : [
         { icon: Home, label: t("Home"), path: "/marketplace" },
         { icon: FilePlus, label: t("Request"), path: "/request" },
-        { icon: Search, label: t("Search"), path: "/search" },
         { icon: MessageSquare, label: t("Messages"), path: "/messages" },
         { icon: User, label: t("Profile"), path: "/profile" },
     ]

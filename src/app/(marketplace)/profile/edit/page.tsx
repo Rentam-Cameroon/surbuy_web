@@ -12,10 +12,12 @@ import { marketplaceService } from "@/lib/marketplaceService"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import AuthRequiredState from "@/components/common/AuthRequiredState"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function EditProfilePage() {
     const router = useRouter()
     const { user, isLoading } = useAuthStore()
+    const { t } = useI18n()
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -60,8 +62,8 @@ export default function EditProfilePage() {
         return (
             <>
                 <AuthRequiredState
-                    title="Login Required"
-                    description="Login to edit your profile."
+                    title={t("Login Required")}
+                    description={t("Login to edit your profile.")}
                 />
                 <FloatingNavbar />
             </>
@@ -87,14 +89,14 @@ export default function EditProfilePage() {
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight">Edit Profile</h1>
-                        <p className="text-muted-foreground text-sm">Update your public information</p>
+                        <h1 className="text-2xl font-bold tracking-tight">{t("Edit Profile")}</h1>
+                        <p className="text-muted-foreground text-sm">{t("Update your public information")}</p>
                     </div>
                 </header>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
+                        <Label htmlFor="name">{t("Full Name")}</Label>
                         <Input
                             id="name"
                             value={formData.name}
@@ -104,7 +106,7 @@ export default function EditProfilePage() {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
+                        <Label htmlFor="email">{t("Email Address")}</Label>
                         <Input
                             id="email"
                             type="email"
@@ -113,11 +115,11 @@ export default function EditProfilePage() {
                             className="rounded-xl h-12 bg-muted/50"
                             disabled
                         />
-                        <p className="text-[10px] text-muted-foreground px-1">Email cannot be changed for security reasons.</p>
+                        <p className="text-[10px] text-muted-foreground px-1">{t("Email cannot be changed for security reasons.")}</p>
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="phone">Phone Number</Label>
+                        <Label htmlFor="phone">{t("Phone Number")}</Label>
                         <Input
                             id="phone"
                             value={formData.phone}
@@ -127,18 +129,18 @@ export default function EditProfilePage() {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="bio">Bio</Label>
+                        <Label htmlFor="bio">{t("Bio")}</Label>
                         <Textarea
                             id="bio"
                             value={formData.bio}
                             onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                             className="rounded-xl min-h-[120px] resize-none"
-                            placeholder="Tell us a bit about yourself..."
+                            placeholder={t("Tell us a bit about yourself...")}
                         />
                     </div>
 
                     <Button type="submit" className="w-full h-14 text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all gap-2">
-                        Save Changes
+                        {t("Save Changes")}
                     </Button>
                 </form>
             </div>

@@ -6,7 +6,6 @@ import { ArrowLeft, Search, X, Clock, TrendingUp, ChevronRight } from "lucide-re
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import ListingCard from "@/components/marketplace/ListingCard"
-import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import SearchFilterBar from "@/components/search/SearchFilterBar"
 import { marketplaceService } from "@/lib/marketplaceService"
 import { useAuthStore } from "@/store/useAuthStore"
@@ -386,7 +385,6 @@ export default function SearchPage() {
                     </div>
                 )}
             </main>
-            <FloatingNavbar />
         </div>
     )
 }

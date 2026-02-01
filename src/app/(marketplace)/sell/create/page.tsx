@@ -21,6 +21,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import { getCityNames, getNeighborhoodsForCity } from "@/lib/locations"
 
+import { useI18n } from "@/contexts/I18nContext"
+
 const CONDITIONS = ['New', 'Like New', 'Good', 'Fair', 'For Parts']
 
 interface Category {
@@ -33,6 +35,7 @@ export default function AddProductPage() {
     const searchParams = useSearchParams()
     const editProductId = searchParams.get('edit')
     const isEditMode = !!editProductId
+    const { t } = useI18n()
 
     const [images, setImages] = useState<File[]>([])
     const [imagePreviews, setImagePreviews] = useState<string[]>([])
@@ -79,7 +82,6 @@ export default function AddProductPage() {
                 setIsLoadingProduct(true)
                 const product = await productService.getProduct(editProductId)
 
-                // Pre-populate form
                 setFormData({
                     title: product.title || "",
                     description: product.description || "",
@@ -92,20 +94,19 @@ export default function AddProductPage() {
                     hasReceipt: product.has_receipt || false
                 })
 
-                // Set existing images
                 if (product.images && product.images.length > 0) {
                     setExistingImages(product.images)
                 }
             } catch (err) {
                 console.error("Failed to fetch product:", err)
-                setError("Failed to load product data")
+                setError(t("Failed to load product data"))
             } finally {
                 setIsLoadingProduct(false)
             }
         }
 
         fetchProduct()
-    }, [editProductId])
+    }, [editProductId, t])
 
     useEffect(() => {
         if (formData.locationCity) {
@@ -122,7 +123,6 @@ export default function AddProductPage() {
             const combined = [...images, ...newFiles].slice(0, 5)
             setImages(combined)
 
-            // Create preview URLs
             const previews = combined.map(file => URL.createObjectURL(file))
             setImagePreviews(previews)
         }
@@ -145,7 +145,6 @@ export default function AddProductPage() {
             reader.readAsDataURL(file)
             reader.onload = () => {
                 const result = reader.result as string
-                // Remove data:image/xxx;base64, prefix
                 const base64 = result.split(',')[1]
                 resolve(base64)
             }
@@ -159,7 +158,6 @@ export default function AddProductPage() {
         setError(null)
 
         try {
-            // Convert images to base64
             const imageData = await Promise.all(
                 images.map(async (file) => {
                     const base64 = await fileToBase64(file)
@@ -193,7 +191,7 @@ export default function AddProductPage() {
             }, 2000)
         } catch (err: any) {
             console.error("Submission failed:", err)
-            setError(err.message || `Failed to ${isEditMode ? 'update' : 'publish'} listing`)
+            setError(err.message || (isEditMode ? t("Failed to update listing") : t("Failed to publish listing")))
         } finally {
             setIsSubmitting(false)
         }
@@ -205,8 +203,8 @@ export default function AddProductPage() {
                 <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 animate-bounce">
                     <CheckCircle2 className="h-10 w-10" />
                 </div>
-                <h1 className="text-2xl font-bold">{isEditMode ? 'Product Updated!' : 'Listing Published!'}</h1>
-                <p className="text-muted-foreground">{isEditMode ? 'Your changes have been saved.' : 'Your item is now live and pending review.'}</p>
+                <h1 className="text-2xl font-bold">{isEditMode ? t('Product Updated!') : t('Listing Published!')}</h1>
+                <p className="text-muted-foreground">{isEditMode ? t('Your changes have been saved.') : t('Your item is now live and pending review.')}</p>
             </div>
         )
     }
@@ -215,7 +213,7 @@ export default function AddProductPage() {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center p-6">
                 <CupertinoActivityIndicator size={40} />
-                <p className="mt-4 text-sm text-muted-foreground">Loading product...</p>
+                <p className="mt-4 text-sm text-muted-foreground">{t("Loading product...")}</p>
             </div>
         )
     }
@@ -232,8 +230,8 @@ export default function AddProductPage() {
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">{isEditMode ? 'Edit Product' : 'List an Item'}</h1>
-                    <p className="text-muted-foreground text-sm">{isEditMode ? 'Update your product details' : 'Post a product for sale'}</p>
+                    <h1 className="text-2xl font-bold tracking-tight">{isEditMode ? t('Edit Product') : t('List an Item')}</h1>
+                    <p className="text-muted-foreground text-sm">{isEditMode ? t('Update your product details') : t('Post a product for sale')}</p>
                 </div>
             </header>
 
@@ -254,12 +252,11 @@ export default function AddProductPage() {
             <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Image Upload Section */}
                 <div className="space-y-4">
-                    <Label className="text-base font-bold">Product Photos (Max 5)</Label>
+                    <Label className="text-base font-bold">{t("Product Photos")} ({t("Max 5")})</Label>
                     <p className="text-[10px] text-muted-foreground bg-muted/30 p-3 rounded-xl border border-border/10 italic">
-                        Note: Image upload is currently in beta. Your listing will use a default placeholder if no images are attached.
+                        {t("Note: Image upload is currently in beta. Your listing will use a default placeholder if no images are attached.")}
                     </p>
                     <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                        {/* Existing images (in edit mode) */}
                         {existingImages.map((img, idx) => (
                             <div key={`existing-${idx}`} className="relative aspect-square rounded-2xl overflow-hidden border border-border/40 group">
                                 <Image src={img.image_url} alt={`Existing ${idx}`} fill className="object-cover" sizes="160px" />
@@ -272,7 +269,6 @@ export default function AddProductPage() {
                                 </button>
                             </div>
                         ))}
-                        {/* New images */}
                         {imagePreviews.map((src, idx) => (
                             <div key={`new-${idx}`} className="relative aspect-square rounded-2xl overflow-hidden border border-border/40 group">
                                 <Image src={src} alt={`Upload ${idx}`} fill className="object-cover" sizes="160px" />
@@ -288,7 +284,7 @@ export default function AddProductPage() {
                         {(existingImages.length + images.length) < 5 && (
                             <label className="aspect-square rounded-2xl border-2 border-dashed border-muted-foreground/20 flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-muted/30 transition-colors">
                                 <Camera className="w-6 h-6 text-muted-foreground/60" />
-                                <span className="text-[10px] font-bold text-muted-foreground/60 uppercase">Add</span>
+                                <span className="text-[10px] font-bold text-muted-foreground/60 uppercase">{t("Add")}</span>
                                 <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload} />
                             </label>
                         )}
@@ -299,11 +295,11 @@ export default function AddProductPage() {
                     {/* Basic Info */}
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="title">Title (Max 100 characters)</Label>
+                            <Label htmlFor="title">{t("Title")} ({t("Max 100 characters")})</Label>
                             <Input
                                 id="title"
                                 maxLength={100}
-                                placeholder="e.g. iPhone 15 Pro Max"
+                                placeholder={t("e.g. iPhone 15 Pro Max")}
                                 required
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -313,7 +309,7 @@ export default function AddProductPage() {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="category">Category</Label>
+                                <Label htmlFor="category">{t("Category")}</Label>
                                 <Select
                                     required
                                     value={formData.category_id}
@@ -324,10 +320,10 @@ export default function AddProductPage() {
                                         {isLoadingCategories ? (
                                             <div className="flex items-center gap-2">
                                                 <CupertinoActivityIndicator size={16} />
-                                                <span>Loading...</span>
+                                                <span>{t("Loading...")}</span>
                                             </div>
                                         ) : (
-                                            <SelectValue placeholder="Select" />
+                                            <SelectValue placeholder={t("Select")} />
                                         )}
                                     </SelectTrigger>
                                     <SelectContent>
@@ -338,14 +334,14 @@ export default function AddProductPage() {
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="condition">Condition</Label>
+                                <Label htmlFor="condition">{t("Condition")}</Label>
                                 <Select
                                     required
                                     value={formData.condition}
                                     onValueChange={(val) => setFormData({ ...formData, condition: val })}
                                 >
                                     <SelectTrigger className="rounded-xl h-12">
-                                        <SelectValue placeholder="Select" />
+                                        <SelectValue placeholder={t("Select")} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {CONDITIONS.map(cond => (
@@ -360,7 +356,7 @@ export default function AddProductPage() {
                     {/* Price & Location */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-border/40">
                         <div className="space-y-2">
-                            <Label htmlFor="price">Price (XAF)</Label>
+                            <Label htmlFor="price">{t("Price")} (XAF)</Label>
                             <div className="relative">
                                 <Input
                                     id="price"
@@ -377,12 +373,12 @@ export default function AddProductPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="city">City (Max 50 characters)</Label>
+                            <Label htmlFor="city">{t("City")} ({t("Max 50 characters")})</Label>
                             <Input
                                 id="city"
                                 list="cities"
                                 maxLength={50}
-                                placeholder="e.g. Douala"
+                                placeholder={t("e.g. Douala")}
                                 required
                                 value={formData.locationCity}
                                 onChange={(e) => setFormData({ ...formData, locationCity: e.target.value, neighborhood: "" })}
@@ -397,12 +393,12 @@ export default function AddProductPage() {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="neighborhood">Neighborhood (Max 50 characters)</Label>
+                        <Label htmlFor="neighborhood">{t("Neighborhood")} ({t("Max 50 characters")})</Label>
                         <Input
                             id="neighborhood"
                             list="neighborhoods"
                             maxLength={50}
-                            placeholder="e.g. Akwa"
+                            placeholder={t("e.g. Akwa")}
                             value={formData.neighborhood}
                             onChange={(e) => setFormData({ ...formData, neighborhood: e.target.value })}
                             className="rounded-xl h-12"
@@ -420,12 +416,12 @@ export default function AddProductPage() {
                         <div className="space-y-2">
                             <Label htmlFor="serial_number" className="flex items-center gap-2">
                                 <Hash className="h-3 w-3" />
-                                Serial Number (Optional)
+                                {t("Serial Number")} ({t("Optional")})
                             </Label>
                             <Input
                                 id="serial_number"
                                 maxLength={100}
-                                placeholder="e.g. SN123456789"
+                                placeholder={t("e.g. SN123456789")}
                                 value={formData.serialNumber}
                                 onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
                                 className="rounded-xl h-12"
@@ -435,7 +431,7 @@ export default function AddProductPage() {
                         <div className="flex flex-col justify-center space-y-3">
                             <Label className="flex items-center gap-2">
                                 <FileCheck className="h-3 w-3" />
-                                Have Receipt?
+                                {t("Have Receipt?")}
                             </Label>
                             <div className="flex items-center space-x-2">
                                 <Switch
@@ -444,7 +440,7 @@ export default function AddProductPage() {
                                     onCheckedChange={(val) => setFormData({ ...formData, hasReceipt: val })}
                                 />
                                 <span className="text-sm text-muted-foreground">
-                                    {formData.hasReceipt ? "Yes, I have it" : "No receipt"}
+                                    {formData.hasReceipt ? t("Yes, I have it") : t("No receipt")}
                                 </span>
                             </div>
                         </div>
@@ -452,10 +448,10 @@ export default function AddProductPage() {
 
                     {/* Description */}
                     <div className="space-y-2 pt-4 border-t border-border/40">
-                        <Label htmlFor="description">Detailed Description</Label>
+                        <Label htmlFor="description">{t("Detailed Description")}</Label>
                         <Textarea
                             id="description"
-                            placeholder="Describe features, defects, and usage history..."
+                            placeholder={t("Describe features, defects, and usage history...")}
                             className="rounded-xl min-h-[140px] resize-none"
                             required
                             value={formData.description}
@@ -473,9 +469,9 @@ export default function AddProductPage() {
                         {isSubmitting ? (
                             <>
                                 <CupertinoActivityIndicator size={20} color="white" />
-                                {isEditMode ? 'Updating...' : 'Publishing...'}
+                                {isEditMode ? t('Updating...') : t('Publishing...')}
                             </>
-                        ) : (isEditMode ? 'Update Product' : 'Publish Listing')}
+                        ) : (isEditMode ? t('Update Product') : t('Publish Listing'))}
                     </Button>
                 </div>
             </form>

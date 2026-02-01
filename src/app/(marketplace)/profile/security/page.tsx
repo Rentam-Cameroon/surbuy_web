@@ -17,12 +17,14 @@ import { Label } from "@/components/ui/label"
 import { useAuthStore } from "@/store/useAuthStore"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import AuthRequiredState from "@/components/common/AuthRequiredState"
+import { useI18n } from "@/contexts/I18nContext"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 
 export default function SecurityPage() {
     const router = useRouter()
     const [showPass, setShowPass] = useState(false)
     const { user, isLoading } = useAuthStore()
+    const { t } = useI18n()
 
     if (isLoading) {
         return (
@@ -36,8 +38,8 @@ export default function SecurityPage() {
         return (
             <>
                 <AuthRequiredState
-                    title="Login Required"
-                    description="Login to manage your security settings."
+                    title={t("Login Required")}
+                    description={t("Login to manage your security settings.")}
                 />
                 <FloatingNavbar />
             </>
@@ -57,8 +59,8 @@ export default function SecurityPage() {
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight">Login & Security</h1>
-                        <p className="text-muted-foreground text-sm">Manage your account safety</p>
+                        <h1 className="text-2xl font-bold tracking-tight">{t("Login & Security")}</h1>
+                        <p className="text-muted-foreground text-sm">{t("Manage your account safety")}</p>
                     </div>
                 </header>
 
@@ -67,13 +69,13 @@ export default function SecurityPage() {
                     <CardHeader>
                         <CardTitle className="text-lg flex items-center gap-2">
                             <Lock className="w-4 h-4 text-primary" />
-                            Change Password
+                            {t("Change Password")}
                         </CardTitle>
-                        <CardDescription>Update your login credentials regularly</CardDescription>
+                        <CardDescription>{t("Update your login credentials regularly")}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="current">Current Password</Label>
+                            <Label htmlFor="current">{t("Current Password")}</Label>
                             <div className="relative">
                                 <Input id="current" type={showPass ? "text" : "password"} className="rounded-xl h-12 pr-10" />
                                 <button
@@ -85,15 +87,15 @@ export default function SecurityPage() {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="new">New Password</Label>
+                            <Label htmlFor="new">{t("New Password")}</Label>
                             <Input id="new" type="password" className="rounded-xl h-12" />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="confirm">Confirm New Password</Label>
+                            <Label htmlFor="confirm">{t("Confirm New Password")}</Label>
                             <Input id="confirm" type="password" className="rounded-xl h-12" />
                         </div>
                         <Button className="w-full h-12 rounded-xl mt-4 font-bold shadow-md">
-                            Update Password
+                            {t("Update Password")}
                         </Button>
                     </CardContent>
                 </Card>
@@ -102,20 +104,20 @@ export default function SecurityPage() {
                 <div className="space-y-4">
                     <h2 className="text-xs font-bold uppercase tracking-wider text-red-600 px-2 flex items-center gap-2">
                         <ShieldAlert className="w-3.5 h-3.5" />
-                        Danger Zone
+                        {t("Danger Zone")}
                     </h2>
                     <Card className="border-red-200 bg-red-50/30 overflow-hidden shadow-sm">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between gap-4">
                                 <div className="space-y-1">
-                                    <p className="text-sm font-bold text-red-600">Delete Account</p>
+                                    <p className="text-sm font-bold text-red-600">{t("Delete Account")}</p>
                                     <p className="text-xs text-muted-foreground max-w-[280px]">
-                                        Permanently remove your account and all associated data. This action cannot be undone.
+                                        {t("Permanently remove your account and all associated data. This action cannot be undone.")}
                                     </p>
                                 </div>
                                 <Button variant="destructive" size="sm" className="rounded-xl h-10 px-4 font-bold">
                                     <Trash2 className="w-4 h-4 mr-2" />
-                                    Delete
+                                    {t("Delete")}
                                 </Button>
                             </div>
                         </CardContent>
