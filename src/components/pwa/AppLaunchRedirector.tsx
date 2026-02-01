@@ -16,8 +16,7 @@ export default function AppLaunchRedirector() {
             localStorage.setItem("hasLaunchedOnceAfterOnboarding", "true")
             return
         }
-
-        if (pathname !== "/marketplace") {
+        if (pathname === "/") {
             router.replace("/marketplace")
         }
     }, [pathname, router])
