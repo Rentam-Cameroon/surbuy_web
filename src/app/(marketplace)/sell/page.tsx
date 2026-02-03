@@ -65,9 +65,6 @@ export default function SellDashboard() {
                     <div className="flex items-center gap-2">
                         <Image src="/surbuy-logo.png" alt="Surbuy Logo" width={110} height={28} className="logo-light w-24 h-auto" priority />
                         <Image src="/surbuy-logo-dark.png" alt="Surbuy Logo" width={110} height={28} className="logo-dark w-24 h-auto" priority />
-                        <span className="text-sm font-bold tracking-widest text-primary font-mono italic mt-1">
-                            SELL
-                        </span>
                     </div>
 
                     <div className="flex items-center gap-3">
