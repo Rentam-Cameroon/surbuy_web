@@ -78,7 +78,7 @@ export default function ProductFeed({ category, userId }: ProductFeedProps) {
 
     return (
         <div className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
                 {products.map((item, i) => (
                     <div key={`${item.id}-${i}`}>
                         <ListingCard

@@ -7,6 +7,8 @@ import { MessageCircle, ShieldAlert, Send, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { chatService } from "@/lib/chatService"
 import { useRouter } from "next/navigation"
+import { useAuthStore } from "@/store/useAuthStore"
+import { VerificationDialog } from "@/components/dialogs/VerificationDialog"
 
 interface ChatActionProps {
     sellerName: string
@@ -22,6 +24,8 @@ export default function ChatAction({ sellerName, productId, existingConversation
     const [conversationId, setConversationId] = useState<string | null>(null)
     const [isSending, setIsSending] = useState(false)
     const [existingConversation, setExistingConversation] = useState(false)
+    const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false)
+    const { isAuthenticated, isLoading } = useAuthStore()
 
     const suggestedMessages = [
         "Is this still available, how much?",
@@ -94,7 +98,14 @@ export default function ChatAction({ sellerName, productId, existingConversation
                         </div>
                     </div>
                     <Button
-                        onClick={() => setStatus("safety_check")}
+                        onClick={() => {
+                            if (isLoading) return
+                            if (!isAuthenticated) {
+                                setIsAuthDialogOpen(true)
+                                return
+                            }
+                            setStatus("safety_check")
+                        }}
                         className="w-full h-11 text-base gap-2 shadow-lg hover:shadow-xl transition-all"
                         disabled={!messageText.trim() || isSending || disabled}
                     >
@@ -189,6 +200,13 @@ export default function ChatAction({ sellerName, productId, existingConversation
                     </div>
                 )}
             </AnimatePresence>
+
+            <VerificationDialog
+                open={isAuthDialogOpen}
+                onOpenChange={setIsAuthDialogOpen}
+                type="auth"
+                description="You need to be logged in to send messages to sellers."
+            />
         </div>
     )
 }
