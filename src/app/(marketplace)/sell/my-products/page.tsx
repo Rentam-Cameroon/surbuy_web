@@ -141,7 +141,7 @@ export default function MyProductsPage() {
                             const firstImage = product.images?.[0]?.image_url
 
                             return (
-                                <div key={product.id} className="bg-muted/30 rounded-2xl p-4 border border-border/10">
+                                <div key={product.id} className="bg-muted/30 rounded-2xl p-4 border border-border/10 overflow-hidden">
                                     <div className="flex gap-4 items-start">
                                         <div className="relative h-16 w-16 rounded-xl bg-muted flex items-center justify-center shrink-0 overflow-hidden">
                                             {firstImage ? (
@@ -151,18 +151,20 @@ export default function MyProductsPage() {
                                             )}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-bold truncate">{product.title}</h3>
-                                            <p className="text-xs text-muted-foreground line-clamp-1">{product.category} • {product.condition}</p>
+                                            <div className="flex items-start justify-between gap-2">
+                                                <h3 className="font-bold truncate text-sm md:text-base">{product.title}</h3>
+                                                <div className={cn(
+                                                    "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest shrink-0 whitespace-nowrap",
+                                                    product.status === 'approved' ? "bg-green-100 text-green-600" :
+                                                        product.status === 'pending' ? "bg-blue-100 text-blue-600" :
+                                                            product.status === 'sold' ? "bg-gray-100 text-gray-600" :
+                                                                "bg-red-100 text-red-600"
+                                                )}>
+                                                    {product.status || 'pending'}
+                                                </div>
+                                            </div>
+                                            <p className="text-[11px] text-muted-foreground line-clamp-1">{product.category} • {product.condition}</p>
                                             <p className="text-sm font-black text-primary mt-1">{product.price.toLocaleString()} FCFA</p>
-                                        </div>
-                                        <div className={cn(
-                                            "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shrink-0",
-                                            product.status === 'approved' ? "bg-green-100 text-green-600" :
-                                                product.status === 'pending' ? "bg-blue-100 text-blue-600" :
-                                                    product.status === 'sold' ? "bg-gray-100 text-gray-600" :
-                                                        "bg-red-100 text-red-600"
-                                        )}>
-                                            {product.status || 'pending'}
                                         </div>
                                     </div>
                                     <div className="flex gap-2 mt-3 pt-3 border-t border-border/20">
