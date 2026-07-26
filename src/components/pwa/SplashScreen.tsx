@@ -12,23 +12,22 @@ export default function SplashScreen() {
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 className="flex flex-col items-center gap-4"
             >
-                <div className="relative w-32 h-32">
+                <div className="relative w-48 h-48">
                     <Image
-                        src="/icon.svg"
-                        alt="Surbuy Logo"
+                        src="/surbuy-icon.png"
+                        alt="Surbuy"
                         fill
-                        className="object-contain"
+                        className="object-contain logo-light"
+                        priority
+                    />
+                    <Image
+                        src="/surbuy-icon-dark.png"
+                        alt="Surbuy"
+                        fill
+                        className="object-contain logo-dark"
                         priority
                     />
                 </div>
-                <motion.h1
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="text-2xl font-bold tracking-widest text-primary"
-                >
-                    SURBUY
-                </motion.h1>
             </motion.div>
         </div>
     )

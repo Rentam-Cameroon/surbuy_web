@@ -13,11 +13,13 @@ import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/store/useAuthStore"
 import { VerificationDialog } from "@/components/dialogs/VerificationDialog"
 import { authService } from "@/lib/authService"
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function RequestPage() {
     const router = useRouter()
     const { getRequests, setRequests } = useRequestCache()
     const { isAuthenticated, isLoading } = useAuthStore()
+    const { t } = useI18n()
     const [requests, setRequestsState] = useState<any[]>([])
     const [isLoadingRequests, setIsLoadingRequests] = useState(true)
     const [error, setError] = useState("")
@@ -63,7 +65,7 @@ export default function RequestPage() {
                 return
             }
             router.push(`/sell/requests/respond?requestId=${requestId}&responseType=${responseType}`)
-        } catch (err) {
+        } catch {
             setDialogType("kyc")
         } finally {
             setIsCheckingKyc(false)
@@ -74,12 +76,12 @@ export default function RequestPage() {
         <div className="pb-32 pt-6 px-4 max-w-2xl mx-auto min-h-screen">
             <header className="mb-6 flex items-end justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Buyer Requests</h1>
-                    <p className="text-muted-foreground text-sm">See what others are looking for</p>
+                    <h1 className="text-2xl font-bold tracking-tight">{t("Buyer Requests")}</h1>
+                    <p className="text-muted-foreground text-sm">{t("See what others are looking for")}</p>
                 </div>
                 <Link href="/request/my-requests">
                     <Button variant="ghost" size="sm" className="text-primary text-lg font-semibold hover:bg-primary/5">
-                        My Requests
+                        {t("My Requests")}
                     </Button>
                 </Link>
             </header>
@@ -105,12 +107,12 @@ export default function RequestPage() {
                     <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Plus className="w-8 h-8 text-muted-foreground" />
                     </div>
-                    <h3 className="text-lg font-semibold">No requests yet</h3>
+                    <h3 className="text-lg font-semibold">{t("No requests yet")}</h3>
                     <p className="text-muted-foreground text-sm max-w-xs mx-auto mb-6">
-                        Be the first to post what you are looking for.
+                        {t("Be the first to post what you are looking for.")}
                     </p>
                     <Link href="/request/create">
-                        <Button>Create Request</Button>
+                        <Button>{t("Create Request")}</Button>
                     </Link>
                 </div>
             )}

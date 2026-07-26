@@ -19,7 +19,10 @@ interface RequestCardProps {
     onRespond: (requestId: string, responseType: 'i_have_this' | 'i_know_someone') => void
 }
 
+import { useI18n } from "@/contexts/I18nContext"
+
 export default function RequestCard({ request, onRespond }: RequestCardProps) {
+    const { t } = useI18n()
     const formatDate = (dateString: string) => {
         const date = new Date(dateString)
         const now = new Date()
@@ -75,7 +78,7 @@ export default function RequestCard({ request, onRespond }: RequestCardProps) {
                     size="sm"
                     onClick={() => onRespond(request.id, 'i_have_this')}
                 >
-                    I have it
+                    {t("I have it")}
                 </Button>
                 <Button
                     variant="outline"
@@ -83,7 +86,7 @@ export default function RequestCard({ request, onRespond }: RequestCardProps) {
                     className="w-[35%] h-10 text-[10px] font-medium rounded-xl leading-tight px-1 text-center"
                     onClick={() => onRespond(request.id, 'i_know_someone')}
                 >
-                    I know someone
+                    {t("I know someone")}
                 </Button>
             </CardFooter>
         </Card>

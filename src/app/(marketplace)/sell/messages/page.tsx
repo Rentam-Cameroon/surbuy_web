@@ -117,7 +117,7 @@ export default function SellerMessagesPage() {
                                     <Avatar className="h-14 w-14 border-2 border-background shadow-sm ring-1 ring-border/50">
                                         <AvatarImage src={conv.other_user.avatar} />
                                         <AvatarFallback className="bg-primary/5 text-primary font-bold">
-                                            {conv.other_user.name.split(' ').map(n => n[0]).join('')}
+                                            {conv.other_user.name.split(' ').map((n: string) => n[0]).join('')}
                                         </AvatarFallback>
                                     </Avatar>
                                     {conv.other_user.isOnline && (

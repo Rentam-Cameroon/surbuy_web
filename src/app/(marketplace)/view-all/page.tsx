@@ -9,11 +9,14 @@ import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-i
 import { useAuthStore } from "@/store/useAuthStore"
 import { getUserIdFromCookie } from "@/lib/auth-utils"
 import { useCachedData } from "@/hooks/useCachedData"
+import { Suspense } from "react"
+import { useI18n } from "@/contexts/I18nContext"
 
-export default function ViewAllPage() {
+function ViewAllContent() {
     const searchParams = useSearchParams()
     const router = useRouter()
-    const title = searchParams.get('title') || 'Listings'
+    const { t } = useI18n()
+    const title = searchParams.get('title') || t('Listings')
     const category = searchParams.get('category')
     const type = searchParams.get('type') // 'new', 'popular', etc.
     const { user } = useAuthStore()
@@ -62,12 +65,12 @@ export default function ViewAllPage() {
             <div className="sticky top-0 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40">
                 <div className="container mx-auto px-4 py-3 h-14 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.back()}>
-                            <ArrowLeft className="h-5 w-5" />
-                        </Button>
+                    <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.back()}>
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
                         <h1 className="text-lg font-bold truncate max-w-[200px]">{title}</h1>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={handleSearchClick}>
+                    <Button variant="ghost" size="icon" onClick={handleSearchClick} aria-label={t("Search")}>
                         <Search className="h-5 w-5 text-muted-foreground" />
                     </Button>
                 </div>
@@ -104,5 +107,19 @@ export default function ViewAllPage() {
                 )}
             </main>
         </div>
+    )
+}
+
+export default function ViewAllPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="min-h-screen flex items-center justify-center">
+                    <CupertinoActivityIndicator size={28} />
+                </div>
+            }
+        >
+            <ViewAllContent />
+        </Suspense>
     )
 }

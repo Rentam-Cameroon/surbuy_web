@@ -1,9 +1,8 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Search as SearchIcon, MessageSquare, ChevronRight, SlidersHorizontal, Filter } from "lucide-react"
+import { Search as SearchIcon, MessageSquare, ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
@@ -15,27 +14,12 @@ import { chatService } from "@/lib/chatService"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import { useCachedData } from "@/hooks/useCachedData"
 import AuthRequiredState from "@/components/common/AuthRequiredState"
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function MessagesListPage() {
     const [searchQuery, setSearchQuery] = useState("")
     const { user, isLoading } = useAuthStore()
-
-    if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <CupertinoActivityIndicator size={28} />
-            </div>
-        )
-    }
-
-    if (!user) {
-        return (
-            <AuthRequiredState
-                title="Login Required"
-                description="Login to view your conversations."
-            />
-        )
-    }
+    const { t } = useI18n()
 
     const { data: conversationsData, isLoading: isLoadingConversations } = useCachedData(
         `conversations:marketplace:${user?.id || "anon"}`,
@@ -63,7 +47,7 @@ export default function MessagesListPage() {
                             created_at: "",
                             is_read: true,
                             sender_id: "",
-                            text: "No messages yet"
+                            text: t("No messages yet")
                         }
 
                     return {
@@ -98,12 +82,32 @@ export default function MessagesListPage() {
             )
     }, [conversationsData, searchQuery])
 
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <CupertinoActivityIndicator size={28} />
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <>
+                <AuthRequiredState
+                    title="Login Required"
+                    description="Login to view your conversations."
+                />
+                <FloatingNavbar />
+            </>
+        )
+    }
+
     return (
         <div className="min-h-screen bg-background pb-32">
             {/* Header */}
             <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/40 px-6 py-4">
                 <div className="flex items-center justify-between mb-4">
-                    <h1 className="text-2xl font-bold tracking-tight">Messages</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">{t("Messages")}</h1>
                 </div>
 
                 <div className="relative group">
@@ -111,7 +115,7 @@ export default function MessagesListPage() {
                         <SearchIcon className="h-4 w-4" />
                     </div>
                     <Input
-                        placeholder="Search conversations..."
+                        placeholder={t("Search conversations...")}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full bg-muted/50 border-none rounded-full pl-10 h-10 transition-all font-medium"
@@ -136,7 +140,7 @@ export default function MessagesListPage() {
                                     <Avatar className="h-14 w-14 border-2 border-background shadow-sm ring-1 ring-border/50">
                                         <AvatarImage src={conv.other_user.avatar} />
                                         <AvatarFallback className="bg-primary/5 text-primary font-bold">
-                                            {conv.other_user.name.split(' ').map(n => n[0]).join('')}
+                                            {conv.other_user.name.split(' ').map((n: string) => n[0]).join('')}
                                         </AvatarFallback>
                                     </Avatar>
                                     {conv.other_user.isOnline && (

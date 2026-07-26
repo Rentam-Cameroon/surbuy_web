@@ -13,7 +13,10 @@ interface ProductSectionProps {
     isLoading?: boolean
 }
 
+import { useI18n } from "@/contexts/I18nContext"
+
 export default function ProductSection({ title, listings, href, isLoading = false }: ProductSectionProps) {
+    const { t } = useI18n()
     return (
         <section className="space-y-4">
             <div className="flex justify-between items-end px-1">
@@ -21,7 +24,7 @@ export default function ProductSection({ title, listings, href, isLoading = fals
                 {href && (
                     <Button variant="ghost" className="text-primary hover:text-primary/80 hover:bg-primary/5 gap-1 h-auto py-1 px-2 text-sm font-semibold" asChild>
                         <Link href={href}>
-                            View all <ArrowRight className="h-3 w-3" />
+                            {t("View all")} <ArrowRight className="h-3 w-3" />
                         </Link>
                     </Button>
                 )}

@@ -12,9 +12,12 @@ import { requestService } from "@/lib/requestService"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import { VerificationDialog } from "@/components/dialogs/VerificationDialog"
 import { cn } from "@/lib/utils"
+import { useAuthStore } from "@/store/useAuthStore"
+import AuthRequiredState from "@/components/common/AuthRequiredState"
 
 export default function MyRequestsPage() {
     const router = useRouter()
+    const { user, isLoading } = useAuthStore()
     const [selectedId, setSelectedId] = useState<string | null>(null)
     const [requests, setRequests] = useState<any[]>([])
     const [isLoadingRequests, setIsLoadingRequests] = useState(true)
@@ -76,7 +79,7 @@ export default function MyRequestsPage() {
             setRequests((prev) =>
                 prev.map((req) => (req.id === requestId ? { ...req, status: "closed" } : req))
             )
-        } catch (err) {
+        } catch {
             alert("Failed to close request")
         } finally {
             setActioningId(null)
@@ -86,6 +89,26 @@ export default function MyRequestsPage() {
     const openCloseDialog = (requestId: string) => {
         setPendingCloseId(requestId)
         setCloseDialogOpen(true)
+    }
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <CupertinoActivityIndicator size={28} />
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <>
+                <AuthRequiredState
+                    title="Login Required"
+                    description="Login to view your requests."
+                />
+                <FloatingNavbar />
+            </>
+        )
     }
 
     return (

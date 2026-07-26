@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useCallback, useContext, useState } from "react"
+import React, { createContext, useCallback, useContext, useState, useRef } from "react"
 
 interface CacheEntry {
     data: any
@@ -17,42 +17,32 @@ interface AppCacheContextType {
 const AppCacheContext = createContext<AppCacheContextType | undefined>(undefined)
 
 export function AppCacheProvider({ children }: { children: React.ReactNode }) {
-    const [cache, setCache] = useState<Record<string, CacheEntry>>({})
+    const cacheRef = useRef<Record<string, CacheEntry>>({})
+    const [, setVersion] = useState(0)
 
-    const getEntry = useCallback(
-        (key: string) => {
-            return cache[key] || null
-        },
-        [cache]
-    )
+    const getEntry = useCallback((key: string) => {
+        return cacheRef.current[key] || null
+    }, [])
 
     const setEntry = useCallback((key: string, data: any) => {
-        setCache((prev) => ({
-            ...prev,
-            [key]: { data, timestamp: Date.now() },
-        }))
+        cacheRef.current[key] = { data, timestamp: Date.now() }
+        setVersion(v => v + 1)
     }, [])
 
     const invalidate = useCallback((key?: string) => {
         if (!key) {
-            setCache({})
-            return
+            cacheRef.current = {}
+        } else {
+            delete cacheRef.current[key]
         }
-        setCache((prev) => {
-            const next = { ...prev }
-            delete next[key]
-            return next
-        })
+        setVersion(v => v + 1)
     }, [])
 
     const invalidatePrefix = useCallback((prefix: string) => {
-        setCache((prev) => {
-            const next = { ...prev }
-            Object.keys(next).forEach((key) => {
-                if (key.startsWith(prefix)) delete next[key]
-            })
-            return next
+        Object.keys(cacheRef.current).forEach((key) => {
+            if (key.startsWith(prefix)) delete cacheRef.current[key]
         })
+        setVersion(v => v + 1)
     }, [])
 
     return (

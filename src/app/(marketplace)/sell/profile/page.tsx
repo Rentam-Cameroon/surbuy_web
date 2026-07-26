@@ -1,7 +1,6 @@
 "use client"
 
 import {
-    User,
     ShieldCheck,
     ChevronRight,
     Bell,
@@ -10,16 +9,21 @@ import {
     Camera,
     Pencil,
     CircleCheck,
-    AlertCircle,
     CreditCard,
     FileCheck,
-    ScanFace,
-    BadgeCheck
+    ScanFace
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
@@ -29,12 +33,21 @@ import { authService } from "@/lib/authService"
 import { marketplaceService } from "@/lib/marketplaceService"
 import { useRouter } from "next/navigation"
 import { getTokenFromCookie } from "@/lib/auth-utils"
+import { useTheme } from "next-themes"
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function SellerProfilePage() {
     const { user: authUser, logout, isLoading: isAuthLoading } = useAuthStore()
     const { documents, setKYCData, isFetched } = useKYCStore()
     const [profile, setProfile] = useState<any | null>(null)
     const router = useRouter()
+    const { theme, setTheme } = useTheme()
+    const { locale, setLocale, t } = useI18n()
+    const [isMounted, setIsMounted] = useState(false)
+
+    useEffect(() => {
+        setIsMounted(true)
+    }, [])
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -92,7 +105,7 @@ export default function SellerProfilePage() {
                         <Avatar className="h-28 w-28 border-4 border-background shadow-xl ring-1 ring-border/50">
                             <AvatarImage src={avatarUrl} />
                             <AvatarFallback className="bg-primary/5 text-primary text-3xl font-bold">
-                                {displayName.split(' ').map(n => n[0]).join('')}
+                                {displayName.split(' ').map((n: string) => n[0]).join('')}
                             </AvatarFallback>
                         </Avatar>
                         <button className="absolute bottom-1 right-1 p-2 bg-primary text-white rounded-full shadow-lg hover:scale-110 active:scale-95 transition-transform">
@@ -200,6 +213,50 @@ export default function SellerProfilePage() {
                     </Card>
                 </div>
 
+                <Card className="border-border/40 overflow-hidden shadow-sm">
+                    <CardContent className="p-0">
+                        <div className="divide-y divide-border/40">
+                            <div className="flex items-center justify-between p-6">
+                                <div className="flex items-center gap-4">
+                                    <ShieldCheck className="w-4 h-4 text-muted-foreground" />
+                                    <div className="space-y-0.5">
+                                        <p className="text-sm font-bold">{t("Theme")}</p>
+                                        <p className="text-xs text-muted-foreground">{t("System")}/{t("Light")}/{t("Dark")}</p>
+                                    </div>
+                                </div>
+                                <Select value={(isMounted ? theme : "system") || "system"} onValueChange={(val) => setTheme(val)} disabled={!isMounted}>
+                                    <SelectTrigger className="h-9 w-32 rounded-full">
+                                        <SelectValue placeholder={t("Theme")} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="system">{t("System")}</SelectItem>
+                                        <SelectItem value="light">{t("Light")}</SelectItem>
+                                        <SelectItem value="dark">{t("Dark")}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex items-center justify-between p-6">
+                                <div className="flex items-center gap-4">
+                                    <ShieldCheck className="w-4 h-4 text-muted-foreground" />
+                                    <div className="space-y-0.5">
+                                        <p className="text-sm font-bold">{t("Language")}</p>
+                                        <p className="text-xs text-muted-foreground">{t("English")} / {t("French")}</p>
+                                    </div>
+                                </div>
+                                <Select value={locale} onValueChange={(val) => setLocale(val as "en" | "fr")} disabled={!isMounted}>
+                                    <SelectTrigger className="h-9 w-32 rounded-full">
+                                        <SelectValue placeholder={t("Language")} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="en">{t("English")}</SelectItem>
+                                        <SelectItem value="fr">{t("French")}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 {/* Account Settings */}
                 <div className="space-y-4">
                     <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-2">Business Settings</h2>
@@ -229,7 +286,7 @@ export default function SellerProfilePage() {
                                 </Link>
 
                                 <button
-                                    className="w-full flex items-center justify-between p-6 hover:bg-red-50 transition-colors group"
+                                    className="w-full flex items-center justify-between p-6 hover:bg-destructive/10 transition-colors group"
                                     onClick={() => {
                                         if (isAuthLoading) return
                                         logout()

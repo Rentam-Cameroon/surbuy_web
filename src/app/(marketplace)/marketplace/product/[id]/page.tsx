@@ -13,6 +13,7 @@ import { chatService } from "@/lib/chatService"
 import { useAuthStore } from "@/store/useAuthStore"
 import { getUserIdFromCookie } from "@/lib/auth-utils"
 import { useCachedData } from "@/hooks/useCachedData"
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function ProductDetailPage() {
     const params = useParams()
@@ -24,6 +25,7 @@ export default function ProductDetailPage() {
     const [isCheckingConversation, setIsCheckingConversation] = useState(true)
     const { user } = useAuthStore()
     const userId = user?.id || getUserIdFromCookie()
+    const { t } = useI18n()
 
     const formatDate = (dateString?: string) => {
         if (!dateString) return ""
@@ -131,14 +133,15 @@ export default function ProductDetailPage() {
         router.push(`/seller/${product.seller.id}`)
     }
 
+    const isPlaceholderImages = !product?.product_images?.length
     const images = useMemo(() => {
-        if (!product?.product_images?.length) return ["/icon.svg"]
+        if (isPlaceholderImages) return ["/surbuy-icon.png"]
         return product.product_images
             .slice()
             .sort((a: any, b: any) => (a.display_order ?? 0) - (b.display_order ?? 0))
             .map((img: any) => img.image_url)
             .filter(Boolean)
-    }, [product])
+    }, [product, isPlaceholderImages])
 
     if (!product && isProductLoading) {
         return (
@@ -149,7 +152,7 @@ export default function ProductDetailPage() {
                     onClick={() => router.back()}
                 >
                     <ArrowLeft className="w-5 h-5" />
-                    Back
+                    {t("Back")}
                 </Button>
                 <div className="flex items-center justify-center py-16">
                     <CupertinoActivityIndicator size={32} />
@@ -167,9 +170,9 @@ export default function ProductDetailPage() {
                     onClick={() => router.back()}
                 >
                     <ArrowLeft className="w-5 h-5" />
-                    Back
+                    {t("Back")}
                 </Button>
-                <div className="py-20 text-center text-muted-foreground">Product not found.</div>
+                <div className="py-20 text-center text-muted-foreground">{t("Product not found.")}</div>
             </div>
         )
     }
@@ -184,14 +187,14 @@ export default function ProductDetailPage() {
                     onClick={() => router.back()}
                 >
                     <ArrowLeft className="w-5 h-5" />
-                    Back
+                    {t("Back")}
                 </Button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
                 {/* Left Column: Gallery */}
                 <div className="lg:col-span-7 xl:col-span-8">
-                    <ProductGallery images={images} title={product?.title || "Product"} />
+                    <ProductGallery images={images} title={product?.title || "Product"} isPlaceholder={isPlaceholderImages} />
                 </div>
 
                 {/* Right Column: Info & Actions */}

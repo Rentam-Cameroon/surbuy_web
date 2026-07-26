@@ -1,12 +1,12 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Plus, Package, Search, Filter, ArrowLeft } from "lucide-react"
+import { Plus, Package, Search, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
+import Image from "next/image"
 import { Input } from "@/components/ui/input"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { productService } from "@/lib/productService"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import { cn } from "@/lib/utils"
@@ -27,7 +27,7 @@ export default function MyProductsPage() {
     const [isSearching, setIsSearching] = useState(false)
     const [actioningProductId, setActioningProductId] = useState<string | null>(null)
 
-    const fetchProducts = async () => {
+    const fetchProducts = useCallback(async () => {
         // Check cache first
         const cachedProducts = getProducts()
         if (cachedProducts) {
@@ -46,11 +46,11 @@ export default function MyProductsPage() {
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [getProducts, setProducts])
 
     useEffect(() => {
         fetchProducts()
-    }, [])
+    }, [fetchProducts])
 
     const handleSearch = async (query: string) => {
         setSearchQuery(query)
@@ -141,28 +141,30 @@ export default function MyProductsPage() {
                             const firstImage = product.images?.[0]?.image_url
 
                             return (
-                                <div key={product.id} className="bg-muted/30 rounded-2xl p-4 border border-border/10">
+                                <div key={product.id} className="bg-muted/30 rounded-2xl p-4 border border-border/10 overflow-hidden">
                                     <div className="flex gap-4 items-start">
-                                        <div className="h-16 w-16 rounded-xl bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+                                        <div className="relative h-16 w-16 rounded-xl bg-muted flex items-center justify-center shrink-0 overflow-hidden">
                                             {firstImage ? (
-                                                <img src={firstImage} alt={product.title} className="w-full h-full object-cover" />
+                                                <Image src={firstImage} alt={product.title} fill className="object-cover" sizes="64px" />
                                             ) : (
                                                 <Package className="h-8 w-8 text-muted-foreground/40" />
                                             )}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-bold truncate">{product.title}</h3>
-                                            <p className="text-xs text-muted-foreground line-clamp-1">{product.category} • {product.condition}</p>
+                                            <div className="flex items-start justify-between gap-2">
+                                                <h3 className="font-bold truncate text-sm md:text-base">{product.title}</h3>
+                                                <div className={cn(
+                                                    "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest shrink-0 whitespace-nowrap",
+                                                    product.status === 'approved' ? "bg-green-100 text-green-600" :
+                                                        product.status === 'pending' ? "bg-blue-100 text-blue-600" :
+                                                            product.status === 'sold' ? "bg-gray-100 text-gray-600" :
+                                                                "bg-red-100 text-red-600"
+                                                )}>
+                                                    {product.status || 'pending'}
+                                                </div>
+                                            </div>
+                                            <p className="text-[11px] text-muted-foreground line-clamp-1">{product.category} • {product.condition}</p>
                                             <p className="text-sm font-black text-primary mt-1">{product.price.toLocaleString()} FCFA</p>
-                                        </div>
-                                        <div className={cn(
-                                            "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shrink-0",
-                                            product.status === 'approved' ? "bg-green-100 text-green-600" :
-                                                product.status === 'pending' ? "bg-blue-100 text-blue-600" :
-                                                    product.status === 'sold' ? "bg-gray-100 text-gray-600" :
-                                                        "bg-red-100 text-red-600"
-                                        )}>
-                                            {product.status || 'pending'}
                                         </div>
                                     </div>
                                     <div className="flex gap-2 mt-3 pt-3 border-t border-border/20">

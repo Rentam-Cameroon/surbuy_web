@@ -15,39 +15,41 @@ import {
 import Link from "next/link"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import { cn } from "@/lib/utils"
-import KYCOverlay from "@/components/marketplace/KYCOverlay"
+import Image from "next/image"
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function SellDashboard() {
     const [showBanner, setShowBanner] = useState(true)
+    const { t } = useI18n()
 
     const cards = [
         {
-            title: "My Products",
-            subtitle: "Manage listings",
+            title: t("My Products"),
+            subtitle: t("Manage listings"),
             icon: Package,
             color: "bg-blue-500/10",
             iconColor: "text-blue-600",
             href: "/sell/my-products"
         },
         {
-            title: "Requests",
-            subtitle: "Buyer needs",
+            title: t("Requests"),
+            subtitle: t("Buyer needs"),
             icon: FileText,
             color: "bg-orange-500/10",
             iconColor: "text-orange-600",
             href: "/sell/requests"
         },
         {
-            title: "Add Product",
-            subtitle: "Post new item",
+            title: t("Add Product"),
+            subtitle: t("Post new item"),
             icon: PlusCircle,
             color: "bg-primary/10",
             iconColor: "text-primary",
             href: "/sell/create"
         },
         {
-            title: "Analytics",
-            subtitle: "View performance",
+            title: t("Analytics"),
+            subtitle: t("View performance"),
             icon: TrendingUp,
             color: "bg-green-500/10",
             iconColor: "text-green-600",
@@ -58,13 +60,11 @@ export default function SellDashboard() {
     return (
         <div className="min-h-screen bg-background pb-32">
             {/* Header */}
-            <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/40 px-6 py-4">
-                <div className="flex items-center justify-between">
+            <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/40 px-4 py-3 h-14 flex items-center">
+                <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
-                        <img src="/icon.svg" alt="Surbuy Logo" className="h-8 w-8" />
-                        <span className="text-xl font-bold tracking-widest text-primary font-mono italic">
-                            SELL
-                        </span>
+                        <Image src="/surbuy-logo.png" alt="Surbuy Logo" width={110} height={28} className="logo-light w-24 h-auto" priority />
+                        <Image src="/surbuy-logo-dark.png" alt="Surbuy Logo" width={110} height={28} className="logo-dark w-24 h-auto" priority />
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -95,13 +95,13 @@ export default function SellDashboard() {
                             <X className="h-4 w-4 text-muted-foreground" />
                         </button>
                         <div className="relative z-10 space-y-2">
-                            <h2 className="text-xl font-bold tracking-tight">Ready to earn?</h2>
+                            <h2 className="text-xl font-bold tracking-tight">{t("Ready to earn?")}</h2>
                             <p className="text-sm text-balance text-muted-foreground leading-relaxed max-w-[200px]">
-                                List your first item today and reach thousands of buyers.
+                                {t("List your first item today and reach thousands of buyers.")}
                             </p>
                             <Link href="/sell/safety">
                                 <Button variant="outline" className="mt-4 rounded-xl font-bold border-primary text-primary hover:bg-primary/5">
-                                    Read our guideline
+                                    {t("Read our guideline")}
                                 </Button>
                             </Link>
                         </div>

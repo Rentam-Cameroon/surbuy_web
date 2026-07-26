@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRegistrationStore } from "@/store/useRegistrationStore"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { useState, useEffect } from "react"
 import { authService } from "@/lib/authService"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
@@ -62,6 +62,34 @@ export default function StepPhoneVerification() {
             setCountdown(60)
         } catch (err: any) {
             setError(err.message || 'Failed to send code')
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const handleNext = async () => {
+        const isValid = /^6[0-9]{8}$/.test(phone)
+        if (!isValid) {
+            setError("Please enter a valid Cameroon phone number (9 digits, starts with 6).")
+            return
+        }
+
+        setIsLoading(true)
+        setError(null)
+        try {
+            const formattedPhone = `+237${phone}`
+            const userStatus = await authService.checkUser(formattedPhone)
+            setRegistrationInfo(userStatus.exists, userStatus.reg_status)
+
+            if (userStatus.exists && userStatus.reg_status === 'complete') {
+                setStep(5)
+            } else {
+                setStep(2)
+            }
+        } catch (err: any) {
+            // Even if check fails, we can proceed to basic info for new flow
+            console.error("Check user failed:", err)
+            setStep(2)
         } finally {
             setIsLoading(false)
         }
@@ -126,21 +154,36 @@ export default function StepPhoneVerification() {
                             <div className="flex items-center justify-center rounded-md border border-input bg-background px-3 font-mono text-sm text-muted-foreground">
                                 +237
                             </div>
-                            <Input
-                                placeholder="6 xx xx xx xx"
-                                type="tel"
-                                value={phone}
-                                onChange={(e) => {
-                                    setPhone(e.target.value)
-                                    if (error) setError(null)
-                                }}
-                                className="text-lg tracking-widest h-12"
-                                disabled={isLoading}
-                            />
+                            <div className="relative flex-1">
+                                <Input
+                                    placeholder="6 xx xx xx xx"
+                                    type="tel"
+                                    value={phone}
+                                    onChange={(e) => {
+                                        setPhone(e.target.value)
+                                        if (error) setError(null)
+                                    }}
+                                    className="text-lg tracking-widest h-12 pr-24"
+                                    disabled={isLoading}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleSendCode}
+                                    disabled={isLoading || !phone}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-xs font-bold hover:bg-primary/20 transition-colors disabled:opacity-50"
+                                >
+                                    {isLoading ? <CupertinoActivityIndicator size={12} /> : "Verify Now"}
+                                </button>
+                            </div>
                         </div>
-                        <div className="flex justify-center">
-                            <Button className="min-w-[150px] h-12 rounded-xl" size="lg" onClick={handleSendCode} disabled={isLoading}>
-                                {isLoading ? <CupertinoActivityIndicator size={20} color="white" /> : "Send Code"}
+                        <div className="pt-2">
+                            <Button
+                                className="w-full h-12 rounded-xl text-lg font-bold"
+                                size="lg"
+                                onClick={handleNext}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? <CupertinoActivityIndicator size={20} color="white" /> : "Next"}
                             </Button>
                         </div>
                     </motion.div>
@@ -163,8 +206,8 @@ export default function StepPhoneVerification() {
                             />
                         </div>
 
-                        <div className="flex justify-center">
-                            <Button className="min-w-[200px] h-12 rounded-xl" size="lg" onClick={handleVerify} disabled={isLoading}>
+                        <div className="flex gap-3 justify-center">
+                            <Button className="w-full h-12 rounded-xl text-lg font-bold" size="lg" onClick={handleVerify} disabled={isLoading}>
                                 {isLoading ? <CupertinoActivityIndicator size={20} color="white" /> : "Verify & Continue"}
                             </Button>
                         </div>

@@ -1,8 +1,7 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { TrendingUp, Users, ShoppingBag, ArrowUpRight, BarChart3, Star } from "lucide-react"
-import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
+import { TrendingUp, Users, ShoppingBag, Star, BarChart3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"

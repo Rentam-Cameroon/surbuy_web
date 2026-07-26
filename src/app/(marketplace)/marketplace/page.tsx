@@ -4,136 +4,110 @@ import { Bell, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import CategoryBar from "@/components/marketplace/CategoryBar"
 import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
-import ProductSection from "@/components/marketplace/ProductSection"
+import ProductFeed from "@/components/marketplace/ProductFeed"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { authService } from "@/lib/authService"
-import { marketplaceService } from "@/lib/marketplaceService"
 import { useAuthStore } from "@/store/useAuthStore"
 import { getUserIdFromCookie } from "@/lib/auth-utils"
-import { useCachedData } from "@/hooks/useCachedData"
+import Image from "next/image"
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function Dashboard() {
     const router = useRouter()
     const { user } = useAuthStore()
     const userId = user?.id || getUserIdFromCookie()
     const [isCheckingKyc, setIsCheckingKyc] = useState(false)
+    const [selectedCategory, setSelectedCategory] = useState("all")
+    const { t } = useI18n()
 
     const handleSellClick = async () => {
+        if (!user) {
+            router.push("/register")
+            return
+        }
+
         if (isCheckingKyc) return
         setIsCheckingKyc(true)
         try {
             const data = await authService.getUserKYCStatus()
             const isApproved = data.kyc_status === "approved" && (data.kyc_tier ?? 0) >= 1
             router.push(isApproved ? "/sell" : "/kyc")
-        } catch (err) {
+        } catch {
             router.push("/kyc")
         } finally {
             setIsCheckingKyc(false)
         }
     }
 
-    const mapProductToListing = (product: any, isNewSection = false) => {
-        const images = Array.isArray(product.product_images) ? product.product_images : []
-        const primaryImage = images
-            .slice()
-            .sort((a: any, b: any) => (a.display_order ?? 0) - (b.display_order ?? 0))[0]?.image_url
-        const location = [product.location_city, product.neighborhood].filter(Boolean).join(", ")
-        const category = product.categories?.name || product.category || product.category_name || product.category_id
-        return {
-            id: product.id,
-            title: product.title,
-            price: product.price,
-            location,
-            image: primaryImage,
-            category,
-            isNew: isNewSection
-        }
-    }
-
-    const { data: newListingsData, isLoading: isLoadingNew } = useCachedData(
-        `marketplace:new:${userId || "anon"}`,
-        async () => {
-            const res = await marketplaceService.listProducts({ type: "new", page: 1, limit: 4, user_id: userId ?? null })
-            return (res.products || []).map((p: any) => mapProductToListing(p, true))
-        }
-    )
-
-    const { data: popularListingsData, isLoading: isLoadingPopular } = useCachedData(
-        `marketplace:popular:${userId || "anon"}`,
-        async () => {
-            const res = await marketplaceService.listProducts({ type: "popular", page: 1, limit: 4, user_id: userId ?? null })
-            return (res.products || []).map((p: any) => mapProductToListing(p))
-        }
-    )
-
-    const { data: recommendedListingsData, isLoading: isLoadingRecommended } = useCachedData(
-        `marketplace:recommended:${userId || "anon"}`,
-        async () => {
-            const res = await marketplaceService.listProducts({ type: "recommended", page: 1, limit: 4, user_id: userId ?? null })
-            return (res.products || []).map((p: any) => mapProductToListing(p))
-        }
-    )
-
     return (
-        <div className="min-h-screen bg-background pb-28 md:pb-8">
+        <div className="min-h-screen bg-background pb-24 md:pb-8">
             {/* Header Section */}
             <div className="sticky top-0 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40">
                 <div className="container mx-auto py-3 space-y-4">
-                    <div className="flex items-center px-4 justify-between h-10 relative">
+                    <div className="flex items-center px-4 justify-between h-12 gap-4">
                         {/* Logo */}
-                        <div className="flex items-center gap-2">
-                            <img src="/icon.svg" alt="Surbuy Logo" className="h-8 w-8" />
-                            <span className="text-xl font-bold tracking-widest text-primary font-mono italic">
-                                SURBUY
-                            </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <Image src="/surbuy-logo.png" alt="Surbuy Logo" width={110} height={28} className="logo-light w-28 h-auto" priority />
+                            <Image src="/surbuy-logo-dark.png" alt="Surbuy Logo" width={110} height={28} className="logo-dark w-28 h-auto" priority />
+                        </div>
+
+                        {/* Search Bar (Desktop) */}
+                        <div className="hidden md:flex flex-1 max-w-md mx-auto">
+                            <div
+                                onClick={() => router.push('/search')}
+                                className="w-full flex items-center gap-2 bg-muted/50 hover:bg-muted transition-colors rounded-full px-4 h-10 cursor-pointer text-muted-foreground"
+                            >
+                                <Plus className="w-4 h-4 opacity-0" /> {/* Spacer */}
+                                <span className="text-sm font-medium flex-1 text-center">{t("Search marketplace...")}</span>
+                            </div>
                         </div>
 
                         {/* Right Actions */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 shrink-0">
+                            {/* Mobile Search Icon */}
                             <Button
-                                onClick={handleSellClick}
-                                size="sm"
-                                className="rounded-full h-9 px-5 font-bold shadow-lg shadow-primary/20 gap-1.5 active:scale-95 transition-all"
+                                variant="ghost"
+                                size="icon"
+                                className="md:hidden rounded-full h-9 w-9 text-foreground"
+                                onClick={() => router.push('/search')}
                             >
-                                <Plus className="w-4 h-4" />
-                                Sell
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-search"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
                             </Button>
+
                             <Link href="/notifications">
                                 <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 text-muted-foreground relative">
                                     <Bell className="h-5 w-5" />
                                     <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-background" />
                                 </Button>
                             </Link>
+
+                            <Button
+                                onClick={handleSellClick}
+                                size="sm"
+                                className="rounded-full h-9 px-4 font-bold shadow-lg shadow-primary/20 gap-1.5 active:scale-95 transition-all ml-1"
+                            >
+                                <Plus className="w-4 h-4" />
+                                {t("Sell")}
+                            </Button>
                         </div>
                     </div>
 
                     {/* Categories */}
-                    <CategoryBar />
+                    <CategoryBar selectedCategory={selectedCategory} onSelect={setSelectedCategory} />
                 </div>
             </div>
 
             {/* Main Content */}
-            <main className="container mx-auto px-4 py-6 space-y-10">
-                <ProductSection
-                    title="Newly Added"
-                    listings={newListingsData || []}
-                    isLoading={isLoadingNew}
-                    href="/view-all?title=Newly%20Added&type=new"
-                />
-                <ProductSection
-                    title="Popular"
-                    listings={popularListingsData || []}
-                    isLoading={isLoadingPopular}
-                    href="/view-all?title=Popular&type=popular"
-                />
-                <ProductSection
-                    title="Recommended for you"
-                    listings={recommendedListingsData || []}
-                    isLoading={isLoadingRecommended}
-                    href="/view-all?title=Recommended&type=recommended"
-                />
+            <main className="container mx-auto px-4 py-6">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold tracking-tight">
+                        {selectedCategory === 'all' ? t("Today's Picks") : t("Results")}
+                    </h2>
+                </div>
+
+                <ProductFeed category={selectedCategory} userId={userId} />
             </main>
 
             {/* Floating Navbar */}

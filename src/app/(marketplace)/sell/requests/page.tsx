@@ -12,11 +12,13 @@ import { useRequestCache } from "@/contexts/RequestCacheContext"
 import { useAuthStore } from "@/store/useAuthStore"
 import { VerificationDialog } from "@/components/dialogs/VerificationDialog"
 import { authService } from "@/lib/authService"
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function SellerRequestsPage() {
     const router = useRouter()
     const { getRequests, setRequests } = useRequestCache()
     const { isAuthenticated, isLoading } = useAuthStore()
+    const { t } = useI18n()
     const [requests, setRequestsState] = useState<any[]>([])
     const [isLoadingRequests, setIsLoadingRequests] = useState(true)
     const [error, setError] = useState("")
@@ -38,14 +40,14 @@ export default function SellerRequestsPage() {
                 setRequestsState(data)
                 setRequests(data)
             } catch (err: any) {
-                setError(err.message || "Failed to load requests")
+                setError(err.message || t("Failed to load requests"))
             } finally {
                 setIsLoadingRequests(false)
             }
         }
 
         loadRequests()
-    }, [getRequests, setRequests])
+    }, [getRequests, setRequests, t])
 
     const handleRespond = async (requestId: string, responseType: "i_have_this" | "i_know_someone") => {
         if (isLoading || isCheckingKyc) return
@@ -62,7 +64,7 @@ export default function SellerRequestsPage() {
                 return
             }
             router.push(`/sell/requests/respond?requestId=${requestId}&responseType=${responseType}`)
-        } catch (err) {
+        } catch {
             setDialogType("kyc")
         } finally {
             setIsCheckingKyc(false)
@@ -81,8 +83,8 @@ export default function SellerRequestsPage() {
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Buyer Requests</h1>
-                    <p className="text-muted-foreground text-sm">Find items people are looking for and respond</p>
+                    <h1 className="text-2xl font-bold tracking-tight">{t("Buyer Requests")}</h1>
+                    <p className="text-muted-foreground text-sm">{t("Find items people are looking for and respond")}</p>
                 </div>
             </header>
 
@@ -107,9 +109,9 @@ export default function SellerRequestsPage() {
                     <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Plus className="w-8 h-8 text-muted-foreground" />
                     </div>
-                    <h3 className="text-lg font-semibold">No requests yet</h3>
+                    <h3 className="text-lg font-semibold">{t("No requests yet")}</h3>
                     <p className="text-muted-foreground text-sm max-w-xs mx-auto">
-                        Check back later for new buyer requests.
+                        {t("Check back later for new buyer requests.")}
                     </p>
                 </div>
             )}

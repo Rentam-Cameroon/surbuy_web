@@ -1,22 +1,23 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Search, X, Clock, TrendingUp, ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import ListingCard from "@/components/marketplace/ListingCard"
-import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 import SearchFilterBar from "@/components/search/SearchFilterBar"
 import { marketplaceService } from "@/lib/marketplaceService"
 import { useAuthStore } from "@/store/useAuthStore"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import { getUserIdFromCookie } from "@/lib/auth-utils"
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function SearchPage() {
     const router = useRouter()
     const { user } = useAuthStore()
     const userId = user?.id || getUserIdFromCookie()
+    const { t } = useI18n()
     const [query, setQuery] = useState("")
     const [recentSearches, setRecentSearches] = useState<string[]>([])
     const [popularSearches, setPopularSearches] = useState<string[]>([])
@@ -72,8 +73,10 @@ export default function SearchPage() {
 
         suggestionTimerRef.current = setTimeout(async () => {
             try {
-                const data = await marketplaceService.getSearchSuggestions(keyword)
-                const unique = Array.from(new Set(data)).filter((s) => s.toLowerCase() !== keyword.toLowerCase())
+                const data = (await marketplaceService.getSearchSuggestions(keyword)) as string[]
+                const unique = Array.from(new Set(data))
+                    .filter((s) => typeof s === "string")
+                    .filter((s) => s.toLowerCase() !== keyword.toLowerCase())
                 setSuggestions(unique)
             } catch (err) {
                 console.error("Failed to load suggestions:", err)
@@ -88,14 +91,7 @@ export default function SearchPage() {
         }
     }, [query])
 
-    // Effect to handle filtering and sorting when criteria change
-    useEffect(() => {
-        if (isSearching) {
-            runSearch(query)
-        }
-    }, [selectedCategory, priceRange, location, condition, sortOrder, isSearching, query])
-
-    const runSearch = async (searchTerm: string) => {
+    const runSearch = useCallback(async (searchTerm: string) => {
         const keyword = searchTerm.trim()
         if (keyword.length < 2) return
 
@@ -131,7 +127,10 @@ export default function SearchPage() {
                 const images = Array.isArray(product.product_images) ? product.product_images : []
                 const primaryImage = images
                     .slice()
-                    .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))[0]?.image_url
+                    .sort(
+                        (a: { display_order?: number }, b: { display_order?: number }) =>
+                            (a.display_order ?? 0) - (b.display_order ?? 0)
+                    )[0]?.image_url
                 const locationLabel = [product.location_city, product.neighborhood].filter(Boolean).join(", ")
                 const categoryLabel = product.categories?.name || product.category || product.category_name || product.category_id
                 return {
@@ -150,7 +149,14 @@ export default function SearchPage() {
         } finally {
             setIsSearchingResults(false)
         }
-    }
+    }, [condition, location, priceRange, selectedCategory, sortOrder, userId])
+
+    // Effect to handle filtering and sorting when criteria change
+    useEffect(() => {
+        if (isSearching) {
+            runSearch(query)
+        }
+    }, [selectedCategory, priceRange, location, condition, sortOrder, isSearching, query, runSearch])
 
     const handleSearch = (searchTerm: string) => {
         const keyword = searchTerm.trim()
@@ -213,7 +219,7 @@ export default function SearchPage() {
                             if (isSearching) setIsSearching(false)
                         }}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch(query)}
-                        placeholder="Search for anything..."
+                        placeholder={t("Search for anything...")}
                         className="w-full bg-muted/50 border-none rounded-full pl-10 pr-10 focus-visible:ring-2 focus-visible:ring-primary h-10 transition-all font-medium"
                     />
                     {query && (
@@ -276,14 +282,14 @@ export default function SearchPage() {
                         {(query.length < 2 || suggestions.length === 0) && recentSearches.length > 0 && (
                             <div className="mb-6">
                                 <div className="flex items-center justify-between px-6 py-2">
-                                    <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Recent</h2>
+                                    <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("Recent")}</h2>
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={clearRecent}
                                         className="text-[11px] h-6 px-2 font-bold text-primary hover:bg-primary/5 rounded-lg"
                                     >
-                                        CLEAR
+                                        {t("Clear")}
                                     </Button>
                                 </div>
                                 <div className="space-y-0.5">
@@ -310,7 +316,7 @@ export default function SearchPage() {
                         {/* Popular Searches */}
                         {(query.length < 2 || suggestions.length === 0) && (
                             <div className="px-6">
-                                <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">Popular Searches</h2>
+                                <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">{t("Popular Searches")}</h2>
                                 <div className="flex flex-wrap gap-2">
                                     {popularSearches.map((item, idx) => (
                                         <Button
@@ -318,7 +324,7 @@ export default function SearchPage() {
                                             variant="secondary"
                                             size="sm"
                                             onClick={() => handleSearch(item)}
-                                            className="rounded-full bg-muted/60 hover:bg-primary/10 hover:text-primary border-none transition-all flex items-center gap-2 h-9 px-4 text-sm font-medium"
+                                            className="rounded-full bg-muted text-foreground hover:bg-primary/10 hover:text-primary border-none transition-all flex items-center gap-2 h-9 px-4 text-sm font-medium"
                                         >
                                             <TrendingUp className="h-3 w-3" />
                                             {item}
@@ -333,7 +339,7 @@ export default function SearchPage() {
                     <div className="pt-2 pb-20 space-y-4">
                         <div className="px-6 flex items-center justify-between mb-0">
                             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                {results.length === 0 ? "No results found" : `${results.length} results for "${query}"`}
+                                {results.length === 0 ? t("No results found") : `${results.length} ${t("results for")} "${query}"`}
                             </h2>
                         </div>
                         {isSearchingResults ? (
@@ -360,8 +366,8 @@ export default function SearchPage() {
                                 <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <Search className="h-8 w-8 text-muted-foreground" />
                                 </div>
-                                <h3 className="text-lg font-bold">No results found</h3>
-                                <p className="text-muted-foreground text-sm">Try adjusting your filters or search terms</p>
+                                <h3 className="text-lg font-bold">{t("No results found")}</h3>
+                                <p className="text-muted-foreground text-sm">{t("Try adjusting your filters or search terms")}</p>
                                 <Button
                                     variant="outline"
                                     onClick={() => {
@@ -372,14 +378,13 @@ export default function SearchPage() {
                                     }}
                                     className="mt-6 rounded-xl"
                                 >
-                                    Reset All Filters
+                                    {t("Reset All Filters")}
                                 </Button>
                             </div>
                         )}
                     </div>
                 )}
             </main>
-            <FloatingNavbar />
         </div>
     )
 }

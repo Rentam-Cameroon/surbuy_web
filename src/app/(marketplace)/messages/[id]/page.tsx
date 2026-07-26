@@ -14,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { chatService } from "@/lib/chatService"
 import { marketplaceService } from "@/lib/marketplaceService"
@@ -22,12 +21,15 @@ import { useAuthStore } from "@/store/useAuthStore"
 import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
 import { supabase } from "@/lib/supabase"
 import AuthRequiredState from "@/components/common/AuthRequiredState"
+import { useI18n } from "@/contexts/I18nContext"
+import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
 
 export default function ChatDetailPage() {
     const params = useParams()
     const router = useRouter()
     const scrollRef = useRef<HTMLDivElement>(null)
     const { user, isLoading: isAuthLoading } = useAuthStore()
+    const { t } = useI18n()
 
     const convId = params.id as string
     const [conversation, setConversation] = useState<any | null>(null)
@@ -36,23 +38,6 @@ export default function ChatDetailPage() {
     const [messages, setMessages] = useState<any[]>([])
     const [newMessage, setNewMessage] = useState("")
     const [isLoading, setIsLoading] = useState(true)
-
-    if (isAuthLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <CupertinoActivityIndicator size={28} />
-            </div>
-        )
-    }
-
-    if (!user) {
-        return (
-            <AuthRequiredState
-                title="Login Required"
-                description="Login to view this conversation."
-            />
-        )
-    }
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -106,7 +91,7 @@ export default function ChatDetailPage() {
             }
         }
 
-        if (convId) {
+        if (convId && user?.id) {
             loadConversation()
         }
     }, [convId, user?.id])
@@ -121,17 +106,17 @@ export default function ChatDetailPage() {
             }
         }
 
-        if (convId) {
+        if (convId && user?.id) {
             loadMessages()
         }
-    }, [convId])
+    }, [convId, user?.id])
 
     useEffect(() => {
         let intervalId: ReturnType<typeof setInterval> | null = null
         let isFetching = false
 
         const pollMessages = async () => {
-            if (!convId || isFetching) return
+            if (!convId || !user?.id || isFetching) return
             isFetching = true
             try {
                 const data = await chatService.getMessages(convId)
@@ -152,20 +137,40 @@ export default function ChatDetailPage() {
             }
         }
 
-        if (convId) {
+        if (convId && user?.id) {
             intervalId = setInterval(pollMessages, 3000)
         }
 
         return () => {
             if (intervalId) clearInterval(intervalId)
         }
-    }, [convId])
+    }, [convId, user?.id])
 
     useEffect(() => {
-        if (convId) {
-            chatService.markRead(convId).catch(() => {})
+        if (convId && user?.id) {
+            chatService.markRead(convId).catch(() => { })
         }
-    }, [convId])
+    }, [convId, user?.id])
+
+    if (isAuthLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <CupertinoActivityIndicator size={28} />
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <>
+                <AuthRequiredState
+                    title="Login Required"
+                    description="Login to view this conversation."
+                />
+                <FloatingNavbar />
+            </>
+        )
+    }
 
     if (isLoading) {
         return (
@@ -184,7 +189,7 @@ export default function ChatDetailPage() {
         )
     }
 
-    if (!conversation) return <div>Conversation not found</div>
+    if (!conversation) return <div>{t("Conversation not found")}</div>
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -269,7 +274,7 @@ export default function ChatDetailPage() {
                         </div>
                         <div className="min-w-0">
                             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                {context?.type || "product"} Inquiry
+                                {t((context?.type || "product"))} {t("Inquiry")}
                             </p>
                             <h3 className="text-xs font-bold truncate">{context?.title || "Item"}</h3>
                         </div>
@@ -291,11 +296,11 @@ export default function ChatDetailPage() {
             >
                 <div className="text-center py-6">
                     <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-widest bg-muted/40 inline-block px-3 py-1 rounded-full">
-                        Conversation Started • {new Date(conversation.created_at).toLocaleDateString()}
+                        {t("Conversation Started")} • {new Date(conversation.created_at).toLocaleDateString()}
                     </p>
                 </div>
 
-                {messages.map((msg, idx) => {
+                {messages.map((msg) => {
                     const isMe = msg.sender_id === user?.id
                     return (
                         <div
@@ -318,7 +323,7 @@ export default function ChatDetailPage() {
                                     {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                                 </span>
                                 {isMe && msg.is_pending && (
-                                    <span className="text-[10px] text-muted-foreground font-medium">Sending...</span>
+                                    <span className="text-[10px] text-muted-foreground font-medium">{t("Sending...")}</span>
                                 )}
                                 {isMe && (
                                     <CheckCircle2 className={cn("h-3 w-3", msg.is_read ? "text-primary" : "text-muted-foreground/40")} />
@@ -339,7 +344,7 @@ export default function ChatDetailPage() {
                         <ImageIcon className="h-5 w-5" />
                     </button>
                     <Input
-                        placeholder="Type a message..."
+                        placeholder={t("Type a message...")}
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         className="flex-1 bg-transparent border-none focus-visible:ring-0 placeholder:text-muted-foreground/60 h-10 font-medium"

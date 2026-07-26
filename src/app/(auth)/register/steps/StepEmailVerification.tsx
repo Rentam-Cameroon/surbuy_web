@@ -119,16 +119,25 @@ export default function StepEmailVerification() {
                                     setEmail(e.target.value)
                                     if (error) setError(null)
                                 }}
-                                className="pl-10 h-12 rounded-xl"
+                                className="pl-10 pr-24 h-12 rounded-xl"
                                 disabled={isLoading}
                             />
+                            <button
+                                type="button"
+                                onClick={handleSendCode}
+                                disabled={isLoading || !email}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-xs font-bold hover:bg-primary/20 transition-colors disabled:opacity-50"
+                            >
+                                {isLoading ? <CupertinoActivityIndicator size={12} /> : "Verify Now"}
+                            </button>
                         </div>
-                        <div className="flex gap-3 justify-center pt-4">
-                            <Button variant="outline" className="w-32 h-12 rounded-xl font-bold" onClick={() => setStep(5)} disabled={isLoading}>
-                                Skip
-                            </Button>
-                            <Button className="w-32 h-12 rounded-xl font-bold" onClick={handleSendCode} disabled={isLoading}>
-                                {isLoading ? <CupertinoActivityIndicator size={20} color="white" /> : "Send Code"}
+                        <div className="pt-2">
+                            <Button
+                                className="w-full h-12 rounded-xl text-lg font-bold"
+                                onClick={() => setStep(5)}
+                                disabled={isLoading}
+                            >
+                                Next
                             </Button>
                         </div>
                     </motion.div>
@@ -151,8 +160,8 @@ export default function StepEmailVerification() {
                             />
                         </div>
 
-                        <div className="flex justify-center">
-                            <Button className="min-w-[200px] h-12 rounded-xl font-bold" size="lg" onClick={handleVerify} disabled={isLoading}>
+                        <div className="flex gap-3 justify-center">
+                            <Button className="w-full h-12 rounded-xl text-lg font-bold" size="lg" onClick={handleVerify} disabled={isLoading}>
                                 {isLoading ? <CupertinoActivityIndicator size={20} color="white" /> : "Verify & Finish"}
                             </Button>
                         </div>

@@ -3,9 +3,8 @@
 import { Button } from "@/components/ui/button"
 import { useKYCStore } from "@/store/useKYCStore"
 import { motion, AnimatePresence } from "framer-motion"
-import { Camera, RefreshCw, CheckCircle2, User, AlertCircle, Clock, XCircle, ShieldCheck } from "lucide-react"
-import { useState, useRef, useEffect } from "react"
-import { cn } from "@/lib/utils"
+import { RefreshCw, CheckCircle2, User, AlertCircle, Clock, XCircle, ShieldCheck } from "lucide-react"
+import { useState, useRef, useEffect, useCallback } from "react"
 
 export default function LiveSelfie() {
     const { setSelfieFile, selfieFile, documents } = useKYCStore()
@@ -17,7 +16,7 @@ export default function LiveSelfie() {
 
     const isSubmitted = documents.selfie.status === 'approved' || documents.selfie.status === 'pending'
 
-    const startCamera = async () => {
+    const startCamera = useCallback(async () => {
         if (isSubmitted) return
         try {
             setError(null)
@@ -38,14 +37,14 @@ export default function LiveSelfie() {
                 setError("Could not access camera. Please check your system settings and browser permissions.")
             }
         }
-    }
+    }, [isSubmitted])
 
-    const stopCamera = () => {
+    const stopCamera = useCallback(() => {
         if (stream) {
             stream.getTracks().forEach(track => track.stop())
             setStream(null)
         }
-    }
+    }, [stream])
 
     const capturePhoto = () => {
         if (videoRef.current && canvasRef.current) {
@@ -71,7 +70,7 @@ export default function LiveSelfie() {
     useEffect(() => {
         if (!selfieFile && !isSubmitted) startCamera()
         return () => stopCamera()
-    }, [isSubmitted])
+    }, [isSubmitted, selfieFile, startCamera, stopCamera])
 
     return (
         <motion.div

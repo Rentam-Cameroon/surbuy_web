@@ -8,18 +8,23 @@ import {
     Bell,
     Smartphone,
     Mail,
-    BadgeCheck,
-    ShieldCheck,
-    SmartphoneIcon,
     Send
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
-import { Separator } from "@/components/ui/separator"
+import FloatingNavbar from "@/components/marketplace/FloatingNavbar"
+import { useAuthStore } from "@/store/useAuthStore"
+import AuthRequiredState from "@/components/common/AuthRequiredState"
+import { CupertinoActivityIndicator } from "@/components/ui/cupertino-activity-indicator"
+
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function NotificationsPage() {
     const router = useRouter()
+    const { user, isLoading } = useAuthStore()
+    const { t } = useI18n()
+
     const [prefs, setPrefs] = useState({
         sms_new_message: true,
         sms_request_response: true,
@@ -40,49 +45,69 @@ export default function NotificationsPage() {
         email_enabled: false,
     })
 
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <CupertinoActivityIndicator size={28} />
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <>
+                <AuthRequiredState
+                    title={t("Login Required")}
+                    description={t("Login to manage notification settings.")}
+                />
+                <FloatingNavbar />
+            </>
+        )
+    }
+
     const toggle = (key: keyof typeof prefs) => {
         setPrefs(prev => ({ ...prev, [key]: !prev[key] }))
     }
 
     const sections = [
         {
-            title: "Push Notifications",
+            title: t("Push Notifications"),
             icon: Bell,
             keys: [
-                { id: "push_new_message", label: "New Messages", desc: "Alerts for incoming chat messages" },
-                { id: "push_request_response", label: "Request Responses", desc: "When someone responds to your buyer request" },
-                { id: "push_new_listing", label: "New Listings", desc: "Based on your saved searches & interests" },
-                { id: "push_kyc_update", label: "KYC Updates", desc: "Status of your identity verification" },
+                { id: "push_new_message", label: t("New Messages"), desc: t("Alerts for incoming chat messages") },
+                { id: "push_request_response", label: t("Request Responses"), desc: t("When someone responds to your buyer request") },
+                { id: "push_new_listing", label: t("New Listings"), desc: t("Based on your saved searches & interests") },
+                { id: "push_kyc_update", label: t("KYC Updates"), desc: t("Status of your identity verification") },
             ]
         },
         {
-            title: "SMS Notifications",
+            title: t("SMS Notifications"),
             icon: Smartphone,
             keys: [
-                { id: "sms_new_message", label: "New Messages", desc: "Get SMS for important chat activity" },
-                { id: "sms_request_response", label: "Request Responses", desc: "Urgent updates on your requests" },
-                { id: "sms_new_listing", label: "New Listings", desc: "Daily digest of new items" },
-                { id: "sms_kyc_update", label: "KYC Updates", desc: "Crucial account verification alerts" },
+                { id: "sms_new_message", label: t("New Messages"), desc: t("Get SMS for important chat activity") },
+                { id: "sms_request_response", label: t("Request Responses"), desc: t("Urgent updates on your requests") },
+                { id: "sms_new_listing", label: t("New Listings"), desc: t("Daily digest of new items") },
+                { id: "sms_kyc_update", label: t("KYC Updates"), desc: t("Crucial account verification alerts") },
             ]
         },
         {
-            title: "WhatsApp",
+            title: t("WhatsApp"),
             icon: MessageSquare,
             keys: [
-                { id: "whatsapp_new_message", label: "New Messages", desc: "Direct messages via WhatsApp" },
-                { id: "whatsapp_request_response", label: "Request Responses", desc: "Convenient updates on your requests" },
-                { id: "whatsapp_new_listing", label: "New Listings", desc: "Market highlights" },
-                { id: "whatsapp_kyc_update", label: "KYC Updates", desc: "Verification flow support" },
+                { id: "whatsapp_new_message", label: t("New Messages"), desc: t("Direct messages via WhatsApp") },
+                { id: "whatsapp_request_response", label: t("Request Responses"), desc: t("Convenient updates on your requests") },
+                { id: "whatsapp_new_listing", label: t("New Listings"), desc: t("Market highlights") },
+                { id: "whatsapp_kyc_update", label: t("KYC Updates"), desc: t("Verification flow support") },
             ]
         },
         {
-            title: "Telegram",
+            title: t("Telegram"),
             icon: Send,
             keys: [
-                { id: "telegram_new_message", label: "New Messages", desc: "Notifications via our Telegram bot" },
-                { id: "telegram_request_response", label: "Request Responses", desc: "Instant request updates" },
-                { id: "telegram_new_listing", label: "New Listings", desc: "Bot-driven product alerts" },
-                { id: "telegram_kyc_update", label: "KYC Updates", desc: "Account security alerts" },
+                { id: "telegram_new_message", label: t("New Messages"), desc: t("Notifications via our Telegram bot") },
+                { id: "telegram_request_response", label: t("Request Responses"), desc: t("Instant request updates") },
+                { id: "telegram_new_listing", label: t("New Listings"), desc: t("Bot-driven product alerts") },
+                { id: "telegram_kyc_update", label: t("KYC Updates"), desc: t("Account security alerts") },
             ]
         },
     ]
@@ -100,8 +125,8 @@ export default function NotificationsPage() {
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight">Notification Preferences</h1>
-                        <p className="text-muted-foreground text-sm">Choose how you want to stay updated</p>
+                        <h1 className="text-2xl font-bold tracking-tight">{t("Notification Preferences")}</h1>
+                        <p className="text-muted-foreground text-sm">{t("Choose how you want to stay updated")}</p>
                     </div>
                 </header>
 
@@ -115,8 +140,8 @@ export default function NotificationsPage() {
                                         <Mail className="w-5 h-5" />
                                     </div>
                                     <div className="space-y-0.5">
-                                        <p className="text-sm font-bold">Email Notifications</p>
-                                        <p className="text-xs text-muted-foreground">General updates and marketing emails</p>
+                                        <p className="text-sm font-bold">{t("Email Notifications")}</p>
+                                        <p className="text-xs text-muted-foreground">{t("General updates and marketing emails")}</p>
                                     </div>
                                 </div>
                                 <Switch
@@ -158,10 +183,11 @@ export default function NotificationsPage() {
 
                 <div className="pt-4">
                     <Button className="w-full h-14 text-lg font-bold rounded-2xl shadow-lg" onClick={() => router.back()}>
-                        Save Preferences
+                        {t("Save Preferences")}
                     </Button>
                 </div>
             </div>
+            <FloatingNavbar />
         </div>
     )
 }

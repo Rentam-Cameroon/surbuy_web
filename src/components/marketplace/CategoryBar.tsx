@@ -18,7 +18,12 @@ const iconMap: Record<string, any> = {
     furniture: Sofa,
 }
 
-export default function CategoryBar() {
+interface CategoryBarProps {
+    onSelect?: (categoryId: string) => void
+    selectedCategory?: string
+}
+
+export default function CategoryBar({ onSelect, selectedCategory = "all" }: CategoryBarProps) {
     const router = useRouter()
     const { data: categoriesData } = useCachedData(
         "marketplace:categories",
@@ -36,10 +41,14 @@ export default function CategoryBar() {
     }, [categoriesData])
 
     const handleCategoryClick = (cat: typeof categories[0]) => {
-        if (cat.id === 'all') {
-            router.push('/marketplace')
+        if (onSelect) {
+            onSelect(cat.id)
         } else {
-            router.push(`/view-all?title=${encodeURIComponent(cat.name)}&category=${cat.id}`)
+            if (cat.id === 'all') {
+                router.push('/marketplace')
+            } else {
+                router.push(`/view-all?title=${encodeURIComponent(cat.name)}&category=${cat.id}`)
+            }
         }
     }
 
@@ -49,7 +58,7 @@ export default function CategoryBar() {
                 {categories.map((cat) => (
                     <Button
                         key={cat.id}
-                        variant={cat.id === 'all' ? "default" : "outline"}
+                        variant={selectedCategory === cat.id ? "default" : "outline"}
                         className="rounded-full px-6 gap-2"
                         size="sm"
                         onClick={() => handleCategoryClick(cat)}

@@ -38,7 +38,7 @@ export async function POST(request: Request) {
         let data
         try {
             data = JSON.parse(responseText)
-        } catch (e) {
+        } catch {
             console.error('Failed to parse response as JSON:', responseText.substring(0, 500))
             return NextResponse.json({
                 error: 'Invalid response from server',

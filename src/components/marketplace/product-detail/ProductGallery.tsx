@@ -8,11 +8,13 @@ import Image from "next/image"
 interface ProductGalleryProps {
     images: string[]
     title: string
+    isPlaceholder?: boolean
 }
 
-export default function ProductGallery({ images, title }: ProductGalleryProps) {
+export default function ProductGallery({ images, title, isPlaceholder }: ProductGalleryProps) {
     const [selectedIndex, setSelectedIndex] = useState(0)
     const [isLightboxOpen, setIsLightboxOpen] = useState(false)
+    const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({})
 
     const handleNext = (e?: React.MouseEvent) => {
         e?.stopPropagation()
@@ -24,12 +26,18 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
         setSelectedIndex((prev) => (prev - 1 + images.length) % images.length)
     }
 
+    const handleImageError = (index: number) => {
+        setImageErrors((prev) => ({ ...prev, [index]: true }))
+    }
+
+    const showFallback = isPlaceholder || imageErrors[selectedIndex]
+
     return (
         <>
-            <div className="space-y-4">
+            <div className="space-y-4 -mx-4 md:mx-0">
                 {/* Main Image */}
                 <div
-                    className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-muted cursor-zoom-in group"
+                    className="relative aspect-[4/5] md:aspect-[4/3] w-full overflow-hidden md:rounded-xl bg-muted cursor-zoom-in group"
                     onClick={() => setIsLightboxOpen(true)}
                 >
                     <motion.div
@@ -37,15 +45,35 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.3 }}
-                        className="w-full h-full"
+                        className="relative w-full h-full"
                     >
-                        <Image
-                            src={images[selectedIndex]}
-                            alt={`${title} - View ${selectedIndex + 1}`}
-                            fill
-                            className="object-cover"
-                            priority
-                        />
+                        {showFallback ? (
+                            <>
+                                <Image
+                                    src="/surbuy-icon.png"
+                                    alt="Surbuy"
+                                    fill
+                                    className="object-contain logo-light p-6 md:p-12"
+                                    priority
+                                />
+                                <Image
+                                    src="/surbuy-icon-dark.png"
+                                    alt="Surbuy"
+                                    fill
+                                    className="object-contain logo-dark p-6 md:p-12"
+                                    priority
+                                />
+                            </>
+                        ) : (
+                            <Image
+                                src={images[selectedIndex]}
+                                alt={`${title} - View ${selectedIndex + 1}`}
+                                fill
+                                className="object-cover md:object-contain"
+                                priority
+                                onError={() => handleImageError(selectedIndex)}
+                            />
+                        )}
                     </motion.div>
 
                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -74,15 +102,15 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
                 </div>
 
                 {/* Thumbnails */}
-                {images.length > 1 && (
-                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {images.length > 1 && !isPlaceholder && (
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide px-4 md:px-0">
                         {images.map((img, idx) => (
                             <button
                                 key={idx}
                                 onClick={() => setSelectedIndex(idx)}
                                 className={`relative flex-shrink-0 w-20 aspect-square rounded-lg overflow-hidden border-2 transition-all ${idx === selectedIndex
-                                        ? "border-primary ring-2 ring-primary/20"
-                                        : "border-transparent opacity-60 hover:opacity-100"
+                                    ? "border-primary ring-2 ring-primary/20"
+                                    : "border-transparent opacity-60 hover:opacity-100"
                                     }`}
                             >
                                 <Image
@@ -114,12 +142,12 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
                             <X className="w-8 h-8" />
                         </button>
 
-                        <div className="relative w-full h-full flex items-center justify-center p-4">
+                        <div className="relative w-full h-full flex items-center justify-center p-0 md:p-4">
                             <motion.div
                                 key={selectedIndex}
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="relative w-full max-w-5xl aspect-video md:aspect-auto md:h-[80vh]"
+                                className="relative w-full h-full md:max-w-5xl md:h-[80vh]"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <Image
@@ -157,8 +185,8 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
                                     key={idx}
                                     onClick={() => setSelectedIndex(idx)}
                                     className={`relative flex-shrink-0 w-12 aspect-square rounded-md overflow-hidden transition-all ${idx === selectedIndex
-                                            ? "ring-2 ring-white opacity-100"
-                                            : "opacity-50 hover:opacity-100"
+                                        ? "ring-2 ring-white opacity-100"
+                                        : "opacity-50 hover:opacity-100"
                                         }`}
                                 >
                                     <Image
